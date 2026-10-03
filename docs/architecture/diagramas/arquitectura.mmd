@@ -1,0 +1,55 @@
+```mermaid
+flowchart TD
+    %% Actores externos superiores
+    Estudiante["Estudiante votante"]
+    Comite["Comité electoral"]
+    Auditor["Auditor"]
+
+    %% Sistema principal: Monolito Modular
+    subgraph VotoEPIS ["VotoEPIS — Monolito modular (un solo despliegue)"]
+        Presentacion["Capa de presentación: web<br>responsive + API REST"]
+
+        %% Módulos de dominio
+        Autenticacion["Autenticación<br>y sesiones"]
+        Padron["Padrón<br>electoral"]
+        Votacion["Votación<br>(urna anónima)"]
+        Escrutinio["Escrutinio y<br>resultados"]
+        Auditoria["Auditoría<br>y actas"]
+
+        %% Capa inferior del monolito
+        Infraestructura["Capa de infraestructura:<br>repositorios y adaptadores<br>externos"]
+    end
+
+    %% Componentes externos inferiores
+    DB[("PostgreSQL<br>(esquemas: padron, urna,<br>auditoria)")]
+    CorreoId["Correo institucional<br>(proveedor de identidad)"]
+    CorreoNotif["Servicio de correo<br>(comprobantes y actas)"]
+
+    %% Conexiones desde los actores hacia la capa de presentación
+    Estudiante --> Presentacion
+    Comite --> Presentacion
+    Auditor --> Presentacion
+
+    %% Conexiones desde la capa de presentación hacia los módulos
+    Presentacion --> Autenticacion
+    Presentacion --> Padron
+    Presentacion --> Votacion
+    Presentacion --> Escrutinio
+    Presentacion --> Auditoria
+
+    %% Relaciones internas entre módulos
+    Votacion -->|verifica habilitación| Padron
+    Escrutinio -->|lee papeletas| Votacion
+    Votacion -->|registra eventos| Auditoria
+
+    %% Conexiones de los módulos hacia la capa de infraestructura
+    Padron --> Infraestructura
+    Votacion --> Infraestructura
+    Escrutinio --> Infraestructura
+    Auditoria --> Infraestructura
+
+    %% Conexiones desde la capa de infraestructura hacia componentes externos
+    Infraestructura --> DB
+    Infraestructura --> CorreoId
+    Infraestructura --> CorreoNotif
+```
