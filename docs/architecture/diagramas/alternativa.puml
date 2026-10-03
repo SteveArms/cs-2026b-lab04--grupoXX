@@ -1,0 +1,35 @@
+@startuml
+skinparam dpi 220
+skinparam componentStyle rectangle
+skinparam defaultFontName Arial
+skinparam backgroundColor white
+title Alternativa A (descartada): VotoEPIS como monolito en capas
+
+actor "Estudiante votante" as EV
+actor "Comite / Auditor" as CA
+
+node "Servidor unico (VPS)" {
+  package "Aplicacion monolitica en capas" {
+    [Presentacion web y API] as PRE
+    [Logica de negocio] as LOG
+    [Acceso a datos] as DAO
+  }
+  database "PostgreSQL\n(un solo esquema)" as DB
+}
+cloud "Correo institucional\n(proveedor de identidad)" as IDP
+
+EV --> PRE
+CA --> PRE
+PRE --> LOG
+LOG --> DAO
+DAO --> DB
+LOG ..> IDP : autentica
+
+note bottom of DB
+  Puntaje: 3,90 frente a 4,55 del monolito modular.
+  Al compartir un unico esquema relacional entre
+  padron y sufragio, debilita el aislamiento exigido
+  por QA-01 (secreto e integridad del voto) y
+  penaliza la modificabilidad futura (2/5).
+end note
+@enduml
