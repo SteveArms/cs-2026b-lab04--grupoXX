@@ -1,0 +1,111 @@
+@startuml clases-votacion
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam classBackgroundColor #EEF2F8
+skinparam classBorderColor #1A3A5C
+title VotoEPIS — Módulos Padrón y Votación (diseño)
+skinparam nodesep 25
+skinparam ranksep 35
+
+package "padron" {
+  class Estudiante {
+    - id: UUID
+    - correoInstitucional: String
+    - habilitado: bool
+    + estaHabilitado(): bool
+  }
+  class Participacion {
+    - id: UUID
+    - eleccionId: UUID
+    - fechaHora: DateTime
+    - codigoComprobante: String
+    + generarComprobante(): String
+  }
+  interface RepositorioPadron <<puerto>> {
+    + buscarHabilitado(correo: String): Estudiante
+    + existeParticipacion(estudianteId: UUID, eleccionId: UUID): bool
+    + guardarParticipacion(p: Participacion): void
+  }
+}
+
+package "votacion" {
+  enum EstadoEleccion {
+    CONFIGURADA
+    ABIERTA
+    CERRADA
+    ESCRUTADA
+    PUBLICADA
+  }
+  class Eleccion {
+    - id: UUID
+    - nombre: String
+    - inicio: DateTime
+    - fin: DateTime
+    - estado: EstadoEleccion
+    - actaFirmada: bool
+    + configurar(nombre: String, inicio: DateTime, fin: DateTime): void
+    + agregarOpcion(opcion: Opcion): void
+    + estaAbierta(): bool
+    + abrir(): void
+    + cerrar(ahora: DateTime): void
+    + escrutar(totalPapeletas: int, totalParticipaciones: int): void
+    + firmarActa(): void
+    + publicar(): void
+  }
+  class Opcion {
+    - id: UUID
+    - etiqueta: String
+    + obtenerEtiqueta(): String
+  }
+  class Papeleta {
+    - id: UUID
+    + getId(): UUID
+  }
+  class ServicioVotacion <<servicio>> {
+    + emitirVoto(estudiante: Estudiante, eleccionId: UUID, opcionId: UUID, enviarCorreo: bool): String
+  }
+  interface RepositorioVotacion <<puerto>> {
+    + buscarEleccion(id: UUID): Eleccion
+    + guardarPapeleta(p: Papeleta): void
+  }
+  interface NotificadorCorreo <<puerto>> {
+    + enviarComprobante(correo: String, codigo: String): void
+  }
+  class CorreoAdapter <<adaptador>> {
+    + enviarComprobante(correo: String, codigo: String): void
+  }
+}
+
+package "compartido" {
+  interface RegistroAuditoria <<puerto>> {
+    + registrar(evento: String, eleccionId: UUID): void
+  }
+}
+
+' Asociaciones (todas con multiplicidad explícita en ambos extremos)
+Eleccion "1" *-- "2..*" Opcion : ofrece >
+Eleccion "1" *-- "0..*" Papeleta : urna >
+Papeleta "0..*" --> "1" Opcion : elige >
+Estudiante "1" -- "0..*" Participacion : registra >
+
+' Dependencia de tipo (sin romper regla de multiplicidades de asociación)
+Eleccion ..> EstadoEleccion : usa
+
+' Realización
+NotificadorCorreo <|.. CorreoAdapter
+
+' Dependencias del Servicio
+ServicioVotacion ..> Eleccion
+ServicioVotacion ..> Estudiante
+ServicioVotacion ..> Participacion
+ServicioVotacion ..> Papeleta
+ServicioVotacion ..> RepositorioVotacion
+ServicioVotacion ..> RepositorioPadron
+ServicioVotacion ..> NotificadorCorreo
+ServicioVotacion ..> RegistroAuditoria
+
+note "ADR-002: no hay asociación entre\nParticipacion y Papeleta\n(protege el secreto del voto).\nParticipacion referencia la elección\nsolo por identificador (eleccionId)\npara no crear ciclo Padrón <-> Votación." as N1
+Participacion .. N1
+N1 .. Papeleta
+@enduml
