@@ -1,0 +1,53 @@
+@startuml secuencia-emitir-voto
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam sequenceMessageAlign center
+autonumber
+
+actor "Estudiante votante" as EV
+participant "Web (PWA)" as UI
+participant "VotoController" as C
+participant "ServicioVotacion" as S
+participant "RepositorioVotacion" as RV
+participant "Eleccion" as E
+participant "RepositorioPadron" as RP
+participant "RegistroAuditoria" as A
+participant "NotificadorCorreo\n(CorreoAdapter)" as N
+
+EV -> UI : Selecciona una opción y pulsa Votar
+UI -> C : POST /elecciones/{id}/voto
+note right of C : La identidad (Estudiante) viene de la sesión\ncreada por el módulo Autenticación
+C -> S : emitirVoto(estudiante, eleccionId, opcionId, enviarCorreo)
+S -> RV : buscarEleccion(eleccionId)
+RV --> S : eleccion
+S -> E : estaAbierta()
+E --> S : abierta
+
+alt elección no abierta
+    S -> A : registrar("VOTO_FUERA_DE_VENTANA", eleccionId)
+    S --> C : error EleccionNoAbierta
+    C --> UI : 409 La votación no está abierta
+else elección abierta
+    S -> RP : existeParticipacion(estudiante.id, eleccionId)
+    RP --> S : yaParticipo
+    alt ya participó (intento duplicado)
+        S -> A : registrar("INTENTO_VOTO_DUPLICADO", eleccionId)
+        S --> C : error VotoDuplicado
+        C --> UI : 409 Ya emitiste tu voto
+    else puede votar
+        group transacción atómica (ADR-002)
+            S -> RP : guardarParticipacion(participacion)
+            S -> RV : guardarPapeleta(papeleta)
+        end
+        note right of RP : La restricción única (estudiante, elección)\nde la BD es la garantía final ante\nvotos simultáneos (QA-01)
+        S -> A : registrar("VOTO_EMITIDO", eleccionId)
+        opt el estudiante pidió copia por correo
+            S ->> N : enviarComprobante(estudiante.correoInstitucional, codigo)
+            note right of N : asíncrono\n(no bloquea la respuesta)
+        end
+        S --> C : codigoComprobante
+        C --> UI : 201 Created
+    end
+end
+UI --> EV : Muestra el comprobante de participación o el error
+@enduml
