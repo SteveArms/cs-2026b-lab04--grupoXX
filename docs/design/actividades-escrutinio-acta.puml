@@ -1,0 +1,41 @@
+@startuml actividades-escrutinio-acta
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam ActivityBackgroundColor #EEF2F8
+skinparam ActivityBorderColor #1A3A5C
+|Comité electoral|
+start
+:Cierra la votación;
+|Sistema|
+:Verifica el estado de la elección;
+if (¿Elección CERRADA?) then (sí)
+  :Mezcla las papeletas de la urna;
+  :Cuenta los votos por opción;
+  fork
+    :Genera la tabla de resultados;
+  fork again
+    :Calcula el hash SHA-256\ndel archivo de papeletas anónimas;
+  end fork
+  :Genera el acta (resultados + hash);
+  :Marca la elección como ESCRUTADA;
+  |Comité electoral|
+  :Revisa y firma el acta;
+  if (¿Acta firmada?) then (sí)
+    |Sistema|
+    :Publica resultados y acta (PUBLICADA);
+    |Auditor|
+    :Descarga el archivo de papeletas\ny recalcula conteo y hash;
+    if (¿Coincide con el acta?) then (sí)
+      :Emite constancia de conformidad;
+    else (no)
+      :Registra una observación\npara el comité;
+    endif
+  else (no)
+    :Solicita corrección del acta;
+  endif
+else (no)
+  |Comité electoral|
+  :Revisa la hora de cierre y reintenta;
+endif
+stop
+@enduml
