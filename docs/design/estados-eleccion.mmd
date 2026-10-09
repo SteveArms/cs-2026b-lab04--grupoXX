@@ -1,0 +1,14 @@
+stateDiagram-v2
+    [*] --> CONFIGURADA : configurar()
+    CONFIGURADA --> ABIERTA : abrir() [2 o más opciones]
+    ABIERTA --> CERRADA : cerrar() [hora actual igual o posterior al fin]
+    CERRADA --> ESCRUTADA : escrutar() [papeletas = participaciones]
+    
+    ESCRUTADA --> ESCRUTADA : firmarActa()
+    note left of ESCRUTADA
+        firmarActa() no cambia el estado:
+        solo marca actaFirmada = true
+    end note
+
+    ESCRUTADA --> PUBLICADA : publicar() [acta firmada]
+    PUBLICADA --> [*]
