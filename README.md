@@ -54,3 +54,35 @@ Infraestructura --> DB & CorreoId & CorreoNotif
 
 ## Reflexión sobre el uso de la IA (Uso Crítico)
 Los asistentes de IA aceleraron significativamente la redacción de sintaxis en Diagram as Code y la generación de escenarios de prueba. No obstante, se evidenció un fuerte sesgo inicial hacia soluciones complejas (microservicios y Kubernetes), incompatibles con el plazo de 1 mes y el hardware acordado. La verificación humana contrastando documentación oficial y restricciones de presupuesto evitó sobreingeniería, demostrando que la IA funciona como herramienta de apoyo heurístico, pero la toma de decisiones arquitectónicas recae enteramente en el equipo.
+
+## Diseño UML (Lab 05)
+
+Diseño detallado de la historia crítica **HU-03: emitir un voto secreto**, coherente con la arquitectura de monolito modular (ADR-001) y la preservación del voto secreto (ADR-002).
+
+### Máquina de estados de la Elección
+```mermaid
+stateDiagram-v2
+    [*] --> CONFIGURADA : configurar()
+    CONFIGURADA --> ABIERTA : abrir() [2 o más opciones]
+    ABIERTA --> CERRADA : cerrar() [hora actual igual o posterior al fin]
+    CERRADA --> ESCRUTADA : escrutar() [papeletas = participaciones]
+    ESCRUTADA --> ESCRUTADA : firmarActa()
+    note left of ESCRUTADA
+        firmarActa() no cambia el estado:
+        solo marca actaFirmada = true
+    end note
+    ESCRUTADA --> PUBLICADA : publicar() [acta firmada]
+    PUBLICADA --> [*]
+```
+
+### Índice de Artefactos de Diseño
+| Entregable | Archivo de Código Fuente | Diagrama Renderizado |
+|---|---|---|
+| **E1: Clases de Dominio** | [`clases.puml`](docs/design/clases.puml) | [Ver Imagen](docs/design/img/clases-votacion.png) |
+| **E2: Secuencia (Flujo Crítico)** | [`secuencia-emitir-voto.puml`](docs/design/secuencia-emitir-voto.puml) | [Ver Imagen](docs/design/img/secuencia-emitir-voto.png) |
+| **E3: Estados de Elección** | [`estados-eleccion.mmd`](docs/design/estados-eleccion.mmd) | Renderizado en GitHub |
+| **E4: Proceso de Escrutinio** | [`actividades-escrutinio-acta.puml`](docs/design/actividades-escrutinio-acta.puml) | [Ver Imagen](docs/design/img/actividades-escrutinio-acta.png) |
+| **E5: Paquetes Modulares** | [`paquetes.puml`](docs/design/paquetes.puml) | [Ver Imagen](docs/design/img/paquetes.png) |
+| **E6: Round-Trip Engineering** | [`round-trip.md`](docs/design/round-trip.md) | [Clases Pyreverse](docs/design/img/classes_votoepis.png) |
+| **E7: Auditoría C1-C5** | [`consistencia.md`](docs/design/consistencia.md) | [Bitácora de IA](docs/design/bitacora-ia.md) |
+| **Arquitectura: Nuevo ADR** | [`ADR-004`](docs/architecture/adr/004-puerto-auditoria-en-compartido.md) | — |
