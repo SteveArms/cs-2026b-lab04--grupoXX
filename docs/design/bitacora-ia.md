@@ -1,14 +1,17 @@
-# Bitácora de Uso de IA — Entrega E1
+# Bitácora de uso de IA — VotoEPIS (Lab 05)
 
-- **Fecha:** Octubre 2026
-- **Herramienta:** Asistente IA
-- **Objetivo:** Generar el diagrama de clases del dominio y diseño para la HU-03 (Votación secreta).
+| # | Fecha | Herramienta | Prompt (resumen) | Qué propuso la IA | Qué verificamos o corregimos | Decisión |
+|---|---|---|---|---|---|---|
+| 1 | 05/10 | Gemini | Generación de clases para Padrón y Votación | Atributo `estudiante_id` dentro de `Papeleta` | Violaba el secreto del voto (ADR-002, RF-04) | Corregida |
+| 2 | 06/10 | Gemini | Generación de secuencia para emitir voto | Registrar la opción elegida en la auditoría | Permitía reconstruir el sentido del voto | Corregida |
+| 3 | 07/10 | Gemini | Esqueleto Python 3.10 para Padrón y Votación | Monolito sin módulos y dependencias cruzadas | Se separó en paquetes `padron`, `votacion` y `compartido` | Corregida |
+| 4 | 08/10 | Gemini | Diagrama de paquetes a partir de la arquitectura | Acoplamiento bidireccional entre Votación y Auditoría | Generaba ciclo (C4). Se creó el puerto en `compartido` (ADR-004) | Corregida |
+| 5 | 09/10 | Gemini | Auditor de consistencia sobre los diagramas UML | "Falta asociación entre Participacion y Papeleta" | Falso positivo: asociarlas vulnera la Ley 29733 y el voto secreto | Rechazada (Falso positivo) |
 
-### Prompt utilizado:
-> Actúa como diseñador de software orientado a objetos.
-> Contexto: módulos Padrón y Votación de VotoEPIS, arquitectura monolito modular en Python/Django bajo arquitectura hexagonal (ADR-001: puertos y adaptadores para integraciones externas). Por ADR-002, el registro de participación (quién votó) y la papeleta (qué se votó) deben estar estrictamente desacoplados sin relación directa entre sí para garantizar el voto secreto (Ley 29733).
-> Requisitos del diagrama:
-> 1. Mínimo 6 clases, 1 interfaz como puerto hacia servicio externo, 1 enumeración.
-> 2. Atributos con tipo y visibilidad, métodos/operaciones en las clases principales.
-> 3. Multiplicidades explícitas en ambos extremos de todas las asociaciones.
-> 4. Relaciones de composición, asociación, realización y dependencia correctamente tipadas en PlantUML.
+## Anexo: Prompts Completos
+
+### Prompt 4 (Diagrama de paquetes acíclico):
+"Actúa como arquitecto de software. Contexto: monolito modular de VotoEPIS. Genera un diagrama de paquetes en PlantUML que evite dependencias cíclicas entre Votación y Auditoría, aplicando inversión de dependencias mediante un paquete compartido."
+
+### Prompt 5 (Auditor de consistencia):
+"Actúa como auditor de diseño UML. Analiza clases.puml, secuencia-emitir-voto.puml, estados-eleccion.mmd, actividades-escrutinio-acta.puml y paquetes.puml. Reporta hallazgos sobre las reglas C1, C2, C3, C4 y C5 en una tabla indicando regla, elemento y problema."

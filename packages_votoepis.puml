@@ -1,0 +1,15 @@
+@startuml packages_votoepis
+set namespaceSeparator none
+package "src.compartido" as src.compartido {
+}
+package "src.compartido.puertos" as src.compartido.puertos {
+}
+package "src.padron" as src.padron {
+}
+package "src.padron.dominio" as src.padron.dominio {
+}
+package "src.votacion" as src.votacion {
+}
+package "src.votacion.dominio" as src.votacion.dominio {
+}
+@enduml

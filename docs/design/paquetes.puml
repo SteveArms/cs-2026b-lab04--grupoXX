@@ -1,0 +1,30 @@
+@startuml paquetes
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam packageStyle rectangle
+title VotoEPIS — Paquetes del monolito modular (vista de desarrollo)
+
+package "votoepis" {
+  package "autenticacion" as AUT
+  package "padron" as PAD
+  package "votacion" as VOT
+  package "escrutinio" as ESC
+  package "auditoria" as AUD
+  package "compartido" as COM
+}
+
+AUT ..> PAD : usa RepositorioPadron\n(verifica habilitación)
+VOT ..> PAD : usa RepositorioPadron\n(participación)
+VOT ..> COM : usa RegistroAuditoria\n(puerto)
+ESC ..> VOT : usa RepositorioVotacion\n(lee papeletas)
+ESC ..> COM : usa RegistroAuditoria\n(puerto)
+AUD ..> ESC : lee acta y hash
+AUD ..> COM : implementa\nRegistroAuditoria
+
+note bottom of COM
+  Regla (ADR-001 / ADR-004): Los módulos se comunican
+  únicamente por puertos / interfaces públicas.
+  No existen dependencias cíclicas: padron no depende
+  de votacion; votacion no depende de auditoria (usa compartido).
+end note
+@enduml

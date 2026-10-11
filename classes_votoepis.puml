@@ -1,0 +1,71 @@
+@startuml classes_votoepis
+set namespaceSeparator none
+class "CorreoAdapter" as src.votacion.dominio.CorreoAdapter {
+  {abstract}enviar_comprobante(correo: str, codigo: str) -> None
+}
+class "Eleccion" as src.votacion.dominio.Eleccion {
+  acta_firmada : bool
+  estado
+  fin : datetime | None
+  id : UUID
+  inicio : datetime | None
+  nombre : str
+  opciones : list[Opcion]
+  abrir() -> None
+  agregar_opcion(opcion: Opcion) -> None
+  cerrar(ahora: datetime) -> None
+  configurar(nombre: str, inicio: datetime, fin: datetime) -> None
+  escrutar(total_papeletas: int, total_participaciones: int) -> None
+  esta_abierta() -> bool
+  firmar_acta() -> None
+  publicar() -> None
+}
+class "<color:red>EleccionNoAbierta</color>" as src.votacion.dominio.EleccionNoAbierta {
+}
+class "EstadoEleccion" as src.votacion.dominio.EstadoEleccion {
+  name
+}
+class "Estudiante" as src.padron.dominio.Estudiante {
+  correo_institucional : str
+  habilitado : bool
+  id : UUID
+}
+class "NotificadorCorreo" as src.votacion.dominio.NotificadorCorreo {
+  {abstract}enviar_comprobante(correo: str, codigo: str) -> None
+}
+class "Opcion" as src.votacion.dominio.Opcion {
+  etiqueta : str
+  id : UUID
+}
+class "Papeleta" as src.votacion.dominio.Papeleta {
+  eleccion_id : UUID
+  id : UUID
+  opcion_id : UUID
+}
+class "Participacion" as src.padron.dominio.Participacion {
+  codigo_comprobante : str
+  eleccion_id : UUID
+  estudiante_id : UUID
+  fecha_hora : datetime
+  id : UUID
+}
+class "RegistroAuditoria" as src.compartido.puertos.RegistroAuditoria {
+  {abstract}registrar(evento: str, eleccion_id: UUID) -> None
+}
+class "RepositorioPadron" as src.padron.dominio.RepositorioPadron {
+  {abstract}buscar_habilitado(correo: str) -> Estudiante | None
+  {abstract}existe_participacion(estudiante_id: UUID, eleccion_id: UUID) -> bool
+  {abstract}guardar_participacion(p: Participacion) -> None
+}
+class "RepositorioVotacion" as src.votacion.dominio.RepositorioVotacion {
+  {abstract}buscar_eleccion(id: UUID) -> Eleccion
+  {abstract}guardar_papeleta(p: Papeleta) -> None
+}
+class "ServicioVotacion" as src.votacion.dominio.ServicioVotacion {
+  emitir_voto(estudiante: Estudiante, eleccion_id: UUID, opcion_id: UUID, enviar_correo: bool) -> str
+}
+class "<color:red>VotoDuplicado</color>" as src.votacion.dominio.VotoDuplicado {
+}
+src.votacion.dominio.CorreoAdapter --|> src.votacion.dominio.NotificadorCorreo
+src.votacion.dominio.Eleccion --> src.votacion.dominio.EstadoEleccion : estado
+@enduml
