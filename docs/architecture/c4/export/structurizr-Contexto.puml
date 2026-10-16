@@ -1,0 +1,32 @@
+@startuml
+title <size:24>System Context View: VotoEPIS</size>\n<size:24>Nivel 1: VotoEPIS y su entorno.</size>
+
+set separator none
+left to right direction
+
+<style>
+  root {
+    BackgroundColor: #ffffff
+    FontColor: #444444
+  }
+</style>
+
+!include <C4/C4>
+!include <C4/C4_Context>
+
+Person(Estudiantevotante, "Estudiante votante", $descr="Estudiante habilitado de la EPIS que emite un voto secreto.", $tags="", $link="")
+Person(Comitéelectoral, "Comité electoral", $descr="Administra el padrón y las elecciones, realiza el escrutinio y firma el acta.", $tags="", $link="")
+Person(Auditor, "Auditor", $descr="Verifica de forma independiente el conteo de la elección.", $tags="", $link="")
+System(VotoEPIS, "VotoEPIS", $descr="Permite votar de forma secreta y verificable en las elecciones de delegados.", $tags="", $link="")
+System(Proveedordeidentidadinstitucional, "Proveedor de identidad institucional", $descr="Autentica a los estudiantes con su correo institucional.", $tags="", $link="")
+System(Serviciodecorreo, "Servicio de correo", $descr="Entrega los comprobantes de participación.", $tags="", $link="")
+
+Rel(Estudiantevotante, VotoEPIS, "Emite su voto secreto", $techn="", $tags="", $link="")
+Rel(Comitéelectoral, VotoEPIS, "Administra elecciones, realiza el escrutinio y firma el acta", $techn="", $tags="", $link="")
+Rel(Auditor, VotoEPIS, "Verifica el conteo de forma independiente", $techn="", $tags="", $link="")
+Rel(VotoEPIS, Proveedordeidentidadinstitucional, "Autentica a los estudiantes", $techn="HTTPS", $tags="", $link="")
+Rel(VotoEPIS, Serviciodecorreo, "Envía comprobantes de participación", $techn="SMTP", $tags="", $link="")
+
+SHOW_LEGEND(true)
+hide stereotypes
+@enduml

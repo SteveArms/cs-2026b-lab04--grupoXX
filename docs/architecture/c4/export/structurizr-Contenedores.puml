@@ -1,0 +1,40 @@
+@startuml
+title <size:24>Container View: VotoEPIS</size>\n<size:24>Nivel 2: contenedores de VotoEPIS.</size>
+
+set separator none
+left to right direction
+
+<style>
+  root {
+    BackgroundColor: #ffffff
+    FontColor: #444444
+  }
+</style>
+
+!include <C4/C4>
+!include <C4/C4_Context>
+!include <C4/C4_Container>
+
+Person(Estudiantevotante, "Estudiante votante", $descr="Estudiante habilitado de la EPIS que emite un voto secreto.", $tags="", $link="")
+Person(Comitéelectoral, "Comité electoral", $descr="Administra el padrón y las elecciones, realiza el escrutinio y firma el acta.", $tags="", $link="")
+Person(Auditor, "Auditor", $descr="Verifica de forma independiente el conteo de la elección.", $tags="", $link="")
+System(Proveedordeidentidadinstitucional, "Proveedor de identidad institucional", $descr="Autentica a los estudiantes con su correo institucional.", $tags="", $link="")
+System(Serviciodecorreo, "Servicio de correo", $descr="Entrega los comprobantes de participación.", $tags="", $link="")
+
+System_Boundary("VotoEPIS_boundary", "VotoEPIS", $tags="") {
+  Container(VotoEPIS.Aplicaciónwebdevotación, "Aplicación web de votación", $techn="HTML / CSS / JavaScript (web responsive)", $descr="Interfaz para votantes, comité y auditor desde celular o PC.", $tags="", $link="")
+  Container(VotoEPIS.APIVotoEPIS, "API VotoEPIS", $techn="Python / Django", $descr="Monolito modular que implementa los casos de uso mediante una API REST.", $tags="", $link="")
+  ContainerDb(VotoEPIS.Basededatos, "Base de datos", $techn="PostgreSQL", $descr="Padrón, participación, papeletas anónimas, resultados y auditoría (un esquema por módulo).", $tags="", $link="")
+}
+
+Rel(Estudiantevotante, VotoEPIS.Aplicaciónwebdevotación, "Emite su voto", $techn="HTTPS", $tags="", $link="")
+Rel(Comitéelectoral, VotoEPIS.Aplicaciónwebdevotación, "Administra elecciones y firma el acta", $techn="HTTPS", $tags="", $link="")
+Rel(Auditor, VotoEPIS.Aplicaciónwebdevotación, "Descarga papeletas anónimas y acta", $techn="HTTPS", $tags="", $link="")
+Rel(VotoEPIS.Aplicaciónwebdevotación, VotoEPIS.APIVotoEPIS, "Envía solicitudes", $techn="HTTPS/JSON (REST)", $tags="", $link="")
+Rel(VotoEPIS.APIVotoEPIS, VotoEPIS.Basededatos, "Lee y escribe", $techn="SQL/TCP", $tags="", $link="")
+Rel(VotoEPIS.APIVotoEPIS, Proveedordeidentidadinstitucional, "Autentica a los estudiantes", $techn="OpenID Connect / HTTPS", $tags="", $link="")
+Rel(VotoEPIS.APIVotoEPIS, Serviciodecorreo, "Envía comprobantes", $techn="SMTP", $tags="", $link="")
+
+SHOW_LEGEND(true)
+hide stereotypes
+@enduml

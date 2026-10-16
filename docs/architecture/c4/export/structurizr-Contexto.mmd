@@ -1,0 +1,26 @@
+graph LR
+  linkStyle default fill:#ffffff
+
+  subgraph diagram ["System Context View: VotoEPIS"]
+    style diagram fill:#ffffff,stroke:#ffffff
+
+    1["<div style='font-weight: bold'>Estudiante votante</div><div style='font-size: 70%; margin-top: 0px'>[Person]</div><div style='font-size: 80%; margin-top:10px'>Estudiante habilitado de la<br />EPIS que emite un voto<br />secreto.</div>"]
+    style 1 fill:#08427b,stroke:#052e56,color:#ffffff
+    2["<div style='font-weight: bold'>Comité electoral</div><div style='font-size: 70%; margin-top: 0px'>[Person]</div><div style='font-size: 80%; margin-top:10px'>Administra el padrón y las<br />elecciones, realiza el<br />escrutinio y firma el acta.</div>"]
+    style 2 fill:#08427b,stroke:#052e56,color:#ffffff
+    3["<div style='font-weight: bold'>Auditor</div><div style='font-size: 70%; margin-top: 0px'>[Person]</div><div style='font-size: 80%; margin-top:10px'>Verifica de forma<br />independiente el conteo de la<br />elección.</div>"]
+    style 3 fill:#08427b,stroke:#052e56,color:#ffffff
+    4["<div style='font-weight: bold'>VotoEPIS</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>Permite votar de forma<br />secreta y verificable en las<br />elecciones de delegados.</div>"]
+    style 4 fill:#1168bd,stroke:#0b4884,color:#ffffff
+    8["<div style='font-weight: bold'>Proveedor de identidad institucional</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>Autentica a los estudiantes<br />con su correo institucional.</div>"]
+    style 8 fill:#999999,stroke:#6b6b6b,color:#ffffff
+    9["<div style='font-weight: bold'>Servicio de correo</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>Entrega los comprobantes de<br />participación.</div>"]
+    style 9 fill:#999999,stroke:#6b6b6b,color:#ffffff
+
+    1-. "<div>Emite su voto secreto</div><div style='font-size: 70%'></div>" .->4
+    2-. "<div>Administra elecciones,<br />realiza el escrutinio y firma<br />el acta</div><div style='font-size: 70%'></div>" .->4
+    3-. "<div>Verifica el conteo de forma<br />independiente</div><div style='font-size: 70%'></div>" .->4
+    4-. "<div>Autentica a los estudiantes</div><div style='font-size: 70%'>[HTTPS]</div>" .->8
+    4-. "<div>Envía comprobantes de<br />participación</div><div style='font-size: 70%'>[SMTP]</div>" .->9
+
+  end

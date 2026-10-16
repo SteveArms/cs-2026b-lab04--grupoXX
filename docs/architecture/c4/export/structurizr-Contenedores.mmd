@@ -1,0 +1,37 @@
+graph LR
+  linkStyle default fill:#ffffff
+
+  subgraph diagram ["Container View: VotoEPIS"]
+    style diagram fill:#ffffff,stroke:#ffffff
+
+    1["<div style='font-weight: bold'>Estudiante votante</div><div style='font-size: 70%; margin-top: 0px'>[Person]</div><div style='font-size: 80%; margin-top:10px'>Estudiante habilitado de la<br />EPIS que emite un voto<br />secreto.</div>"]
+    style 1 fill:#08427b,stroke:#052e56,color:#ffffff
+    2["<div style='font-weight: bold'>Comité electoral</div><div style='font-size: 70%; margin-top: 0px'>[Person]</div><div style='font-size: 80%; margin-top:10px'>Administra el padrón y las<br />elecciones, realiza el<br />escrutinio y firma el acta.</div>"]
+    style 2 fill:#08427b,stroke:#052e56,color:#ffffff
+    3["<div style='font-weight: bold'>Auditor</div><div style='font-size: 70%; margin-top: 0px'>[Person]</div><div style='font-size: 80%; margin-top:10px'>Verifica de forma<br />independiente el conteo de la<br />elección.</div>"]
+    style 3 fill:#08427b,stroke:#052e56,color:#ffffff
+    8["<div style='font-weight: bold'>Proveedor de identidad institucional</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>Autentica a los estudiantes<br />con su correo institucional.</div>"]
+    style 8 fill:#999999,stroke:#6b6b6b,color:#ffffff
+    9["<div style='font-weight: bold'>Servicio de correo</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>Entrega los comprobantes de<br />participación.</div>"]
+    style 9 fill:#999999,stroke:#6b6b6b,color:#ffffff
+
+    subgraph 4 ["VotoEPIS"]
+      style 4 fill:#ffffff,stroke:#0b4884,color:#0b4884
+
+      5["<div style='font-weight: bold'>Aplicación web de votación</div><div style='font-size: 70%; margin-top: 0px'>[Container: HTML / CSS / JavaScript (web responsive)]</div><div style='font-size: 80%; margin-top:10px'>Interfaz para votantes,<br />comité y auditor desde<br />celular o PC.</div>"]
+      style 5 fill:#438dd5,stroke:#2e6295,color:#ffffff
+      6["<div style='font-weight: bold'>API VotoEPIS</div><div style='font-size: 70%; margin-top: 0px'>[Container: Python / Django]</div><div style='font-size: 80%; margin-top:10px'>Monolito modular que<br />implementa los casos de uso<br />mediante una API REST.</div>"]
+      style 6 fill:#438dd5,stroke:#2e6295,color:#ffffff
+      7[("<div style='font-weight: bold'>Base de datos</div><div style='font-size: 70%; margin-top: 0px'>[Container: PostgreSQL]</div><div style='font-size: 80%; margin-top:10px'>Padrón, participación,<br />papeletas anónimas,<br />resultados y auditoría (un<br />esquema por módulo).</div>")]
+      style 7 fill:#438dd5,stroke:#2e6295,color:#ffffff
+    end
+
+    1-. "<div>Emite su voto</div><div style='font-size: 70%'>[HTTPS]</div>" .->5
+    2-. "<div>Administra elecciones y firma<br />el acta</div><div style='font-size: 70%'>[HTTPS]</div>" .->5
+    3-. "<div>Descarga papeletas anónimas y<br />acta</div><div style='font-size: 70%'>[HTTPS]</div>" .->5
+    5-. "<div>Envía solicitudes</div><div style='font-size: 70%'>[HTTPS/JSON (REST)]</div>" .->6
+    6-. "<div>Lee y escribe</div><div style='font-size: 70%'>[SQL/TCP]</div>" .->7
+    6-. "<div>Autentica a los estudiantes</div><div style='font-size: 70%'>[OpenID Connect / HTTPS]</div>" .->8
+    6-. "<div>Envía comprobantes</div><div style='font-size: 70%'>[SMTP]</div>" .->9
+
+  end
