@@ -1,0 +1,44 @@
+graph LR
+  linkStyle default fill:#ffffff
+
+  subgraph diagram ["Dynamic View: VotoEPIS - API VotoEPIS"]
+    style diagram fill:#ffffff,stroke:#ffffff
+
+    15["<div style='font-weight: bold'>Servicio de correo</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>Entrega los comprobantes de<br />participación.</div>"]
+    style 15 fill:#999999,stroke:#6b6b6b,color:#ffffff
+
+    subgraph 4 ["VotoEPIS"]
+      style 4 fill:#ffffff,stroke:#0b4884,color:#0b4884
+
+      subgraph 6 ["API VotoEPIS"]
+        style 6 fill:#ffffff,stroke:#2e6295,color:#2e6295
+
+        12["<div style='font-weight: bold'>Puertos compartidos</div><div style='font-size: 70%; margin-top: 0px'>[Component: Python]</div><div style='font-size: 80%; margin-top:10px'>Define interfaces comunes,<br />como el puerto<br />RegistroAuditoria.</div>"]
+        style 12 fill:#85bbf0,stroke:#5d82a8,color:#000000
+        8["<div style='font-weight: bold'>Módulo Padrón</div><div style='font-size: 70%; margin-top: 0px'>[Component: Django app]</div><div style='font-size: 80%; margin-top:10px'>Administra el padrón<br />electoral y el registro de<br />participación.</div>"]
+        style 8 fill:#85bbf0,stroke:#5d82a8,color:#000000
+        9["<div style='font-weight: bold'>Módulo Votación</div><div style='font-size: 70%; margin-top: 0px'>[Component: Django app]</div><div style='font-size: 80%; margin-top:10px'>Registra la papeleta anónima<br />y controla el voto único por<br />estudiante.</div>"]
+        style 9 fill:#85bbf0,stroke:#5d82a8,color:#000000
+      end
+
+      13[("<div style='font-weight: bold'>Base de datos</div><div style='font-size: 70%; margin-top: 0px'>[Container: PostgreSQL]</div><div style='font-size: 80%; margin-top:10px'>Padrón, participación,<br />papeletas anónimas,<br />resultados y auditoría (un<br />esquema por módulo).</div>")]
+      style 13 fill:#438dd5,stroke:#2e6295,color:#ffffff
+      5["<div style='font-weight: bold'>Aplicación web de votación</div><div style='font-size: 70%; margin-top: 0px'>[Container: HTML / CSS / JavaScript (web responsive)]</div><div style='font-size: 80%; margin-top:10px'>Interfaz para votantes,<br />comité y auditor desde<br />celular o PC.</div>"]
+      style 5 fill:#438dd5,stroke:#2e6295,color:#ffffff
+    end
+
+    5["<div style='font-weight: bold'>Aplicación web de votación</div><div style='font-size: 70%; margin-top: 0px'>[Container: HTML / CSS / JavaScript (web responsive)]</div><div style='font-size: 80%; margin-top:10px'>Interfaz para votantes,<br />comité y auditor desde<br />celular o PC.</div>"]
+    style 5 fill:#438dd5,stroke:#2e6295,color:#ffffff
+    13[("<div style='font-weight: bold'>Base de datos</div><div style='font-size: 70%; margin-top: 0px'>[Container: PostgreSQL]</div><div style='font-size: 80%; margin-top:10px'>Padrón, participación,<br />papeletas anónimas,<br />resultados y auditoría (un<br />esquema por módulo).</div>")]
+    style 13 fill:#438dd5,stroke:#2e6295,color:#ffffff
+    15["<div style='font-weight: bold'>Servicio de correo</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>Entrega los comprobantes de<br />participación.</div>"]
+    style 15 fill:#999999,stroke:#6b6b6b,color:#ffffff
+
+    5-. "<div>1. Envía el voto: POST<br />/elecciones/{id}/voto</div><div style='font-size: 70%'>[HTTPS/JSON]</div>" .->9
+    9-. "<div>2. Verifica y registra la<br />participación</div><div style='font-size: 70%'></div>" .->8
+    8-. "<div>3. Guarda la participación</div><div style='font-size: 70%'>[SQL]</div>" .->13
+    9-. "<div>4. Guarda la papeleta anónima</div><div style='font-size: 70%'>[SQL]</div>" .->13
+    9-. "<div>5. Registra el evento<br />VOTO_EMITIDO</div><div style='font-size: 70%'></div>" .->12
+    9-. "<div>6. Envía el comprobante<br />(opcional)</div><div style='font-size: 70%'>[SMTP]</div>" .->15
+
+  end

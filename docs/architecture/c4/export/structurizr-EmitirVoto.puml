@@ -1,0 +1,45 @@
+@startuml
+title <size:24>Dynamic View: VotoEPIS - API VotoEPIS</size>\n<size:24>Dinámico: un estudiante emite su voto secreto.</size>
+
+set separator none
+left to right direction
+
+<style>
+  root {
+    BackgroundColor: #ffffff
+    FontColor: #444444
+  }
+</style>
+
+!include <C4/C4>
+!include <C4/C4_Context>
+!include <C4/C4_Container>
+!include <C4/C4_Component>
+
+System(Serviciodecorreo, "Servicio de correo", $descr="Entrega los comprobantes de participación.", $tags="", $link="")
+
+System_Boundary("VotoEPIS_boundary", "VotoEPIS", $tags="") {
+  Container_Boundary("VotoEPIS.APIVotoEPIS_boundary", "API VotoEPIS", $tags="") {
+    Component(VotoEPIS.APIVotoEPIS.Puertoscompartidos, "Puertos compartidos", $techn="Python", $descr="Define interfaces comunes, como el puerto RegistroAuditoria.", $tags="", $link="")
+    Component(VotoEPIS.APIVotoEPIS.MóduloPadrón, "Módulo Padrón", $techn="Django app", $descr="Administra el padrón electoral y el registro de participación.", $tags="", $link="")
+    Component(VotoEPIS.APIVotoEPIS.MóduloVotación, "Módulo Votación", $techn="Django app", $descr="Registra la papeleta anónima y controla el voto único por estudiante.", $tags="", $link="")
+  }
+
+  ContainerDb(VotoEPIS.Basededatos, "Base de datos", $techn="PostgreSQL", $descr="Padrón, participación, papeletas anónimas, resultados y auditoría (un esquema por módulo).", $tags="", $link="")
+  Container(VotoEPIS.Aplicaciónwebdevotación, "Aplicación web de votación", $techn="HTML / CSS / JavaScript (web responsive)", $descr="Interfaz para votantes, comité y auditor desde celular o PC.", $tags="", $link="")
+}
+
+Container(VotoEPIS.Aplicaciónwebdevotación, "Aplicación web de votación", $techn="HTML / CSS / JavaScript (web responsive)", $descr="Interfaz para votantes, comité y auditor desde celular o PC.", $tags="", $link="")
+ContainerDb(VotoEPIS.Basededatos, "Base de datos", $techn="PostgreSQL", $descr="Padrón, participación, papeletas anónimas, resultados y auditoría (un esquema por módulo).", $tags="", $link="")
+System(Serviciodecorreo, "Servicio de correo", $descr="Entrega los comprobantes de participación.", $tags="", $link="")
+
+Rel(VotoEPIS.Aplicaciónwebdevotación, VotoEPIS.APIVotoEPIS.MóduloVotación, "1: Envía el voto: POST /elecciones/{id}/voto", $techn="HTTPS/JSON", $tags="", $link="")
+Rel(VotoEPIS.APIVotoEPIS.MóduloVotación, VotoEPIS.APIVotoEPIS.MóduloPadrón, "2: Verifica y registra la participación", $techn="", $tags="", $link="")
+Rel(VotoEPIS.APIVotoEPIS.MóduloPadrón, VotoEPIS.Basededatos, "3: Guarda la participación", $techn="SQL", $tags="", $link="")
+Rel(VotoEPIS.APIVotoEPIS.MóduloVotación, VotoEPIS.Basededatos, "4: Guarda la papeleta anónima", $techn="SQL", $tags="", $link="")
+Rel(VotoEPIS.APIVotoEPIS.MóduloVotación, VotoEPIS.APIVotoEPIS.Puertoscompartidos, "5: Registra el evento VOTO_EMITIDO", $techn="", $tags="", $link="")
+Rel(VotoEPIS.APIVotoEPIS.MóduloVotación, Serviciodecorreo, "6: Envía el comprobante (opcional)", $techn="SMTP", $tags="", $link="")
+
+SHOW_LEGEND(true)
+hide stereotypes
+@enduml

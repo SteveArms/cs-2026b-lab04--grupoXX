@@ -88,6 +88,17 @@ workspace "VotoEPIS" "Modelo C4 de la plataforma de elección digital de delegad
             autolayout lr
         }
 
+        // ===== [E4] Vista dinámica: emitir un voto secreto (Lab 05: secuencia-emitir-voto.puml) =====
+        dynamic votoepis.api "EmitirVoto" "Dinámico: un estudiante emite su voto secreto." {
+            votoepis.web -> votoepis.api.votacion "Envía el voto: POST /elecciones/{id}/voto"
+            votoepis.api.votacion -> votoepis.api.padron "Verifica y registra la participación"
+            votoepis.api.padron -> votoepis.db "Guarda la participación"
+            votoepis.api.votacion -> votoepis.db "Guarda la papeleta anónima"
+            votoepis.api.votacion -> votoepis.api.compartido "Registra el evento VOTO_EMITIDO"
+            votoepis.api.votacion -> correo "Envía el comprobante (opcional)"
+            autolayout lr
+        }
+
         styles {
             element "Person" {
                 shape person
