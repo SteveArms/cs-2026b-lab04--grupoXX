@@ -1,0 +1,57 @@
+graph LR
+  linkStyle default fill:#ffffff
+
+  subgraph diagram ["Component View: VotoEPIS - API VotoEPIS"]
+    style diagram fill:#ffffff,stroke:#ffffff
+
+    14["<div style='font-weight: bold'>Proveedor de identidad institucional</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>Autentica a los estudiantes<br />con su correo institucional.</div>"]
+    style 14 fill:#999999,stroke:#6b6b6b,color:#ffffff
+    15["<div style='font-weight: bold'>Servicio de correo</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>Entrega los comprobantes de<br />participación.</div>"]
+    style 15 fill:#999999,stroke:#6b6b6b,color:#ffffff
+
+    subgraph 4 ["VotoEPIS"]
+      style 4 fill:#ffffff,stroke:#0b4884,color:#0b4884
+
+      subgraph 6 ["API VotoEPIS"]
+        style 6 fill:#ffffff,stroke:#2e6295,color:#2e6295
+
+        10["<div style='font-weight: bold'>Módulo Escrutinio</div><div style='font-size: 70%; margin-top: 0px'>[Component: Django app]</div><div style='font-size: 80%; margin-top:10px'>Cuenta los votos y genera los<br />resultados y el acta.</div>"]
+        style 10 fill:#85bbf0,stroke:#5d82a8,color:#000000
+        11["<div style='font-weight: bold'>Módulo Auditoría</div><div style='font-size: 70%; margin-top: 0px'>[Component: Django app]</div><div style='font-size: 80%; margin-top:10px'>Registra eventos y permite la<br />verificación independiente<br />del conteo.</div>"]
+        style 11 fill:#85bbf0,stroke:#5d82a8,color:#000000
+        12["<div style='font-weight: bold'>Puertos compartidos</div><div style='font-size: 70%; margin-top: 0px'>[Component: Python]</div><div style='font-size: 80%; margin-top:10px'>Define interfaces comunes,<br />como el puerto<br />RegistroAuditoria.</div>"]
+        style 12 fill:#85bbf0,stroke:#5d82a8,color:#000000
+        7["<div style='font-weight: bold'>Módulo Autenticación</div><div style='font-size: 70%; margin-top: 0px'>[Component: Django app]</div><div style='font-size: 80%; margin-top:10px'>Inicia sesión con el correo<br />institucional y verifica que<br />el estudiante esté en el<br />padrón.</div>"]
+        style 7 fill:#85bbf0,stroke:#5d82a8,color:#000000
+        8["<div style='font-weight: bold'>Módulo Padrón</div><div style='font-size: 70%; margin-top: 0px'>[Component: Django app]</div><div style='font-size: 80%; margin-top:10px'>Administra el padrón<br />electoral y el registro de<br />participación.</div>"]
+        style 8 fill:#85bbf0,stroke:#5d82a8,color:#000000
+        9["<div style='font-weight: bold'>Módulo Votación</div><div style='font-size: 70%; margin-top: 0px'>[Component: Django app]</div><div style='font-size: 80%; margin-top:10px'>Registra la papeleta anónima<br />y controla el voto único por<br />estudiante.</div>"]
+        style 9 fill:#85bbf0,stroke:#5d82a8,color:#000000
+      end
+
+      13[("<div style='font-weight: bold'>Base de datos</div><div style='font-size: 70%; margin-top: 0px'>[Container: PostgreSQL]</div><div style='font-size: 80%; margin-top:10px'>Padrón, participación,<br />papeletas anónimas,<br />resultados y auditoría (un<br />esquema por módulo).</div>")]
+      style 13 fill:#438dd5,stroke:#2e6295,color:#ffffff
+      5["<div style='font-weight: bold'>Aplicación web de votación</div><div style='font-size: 70%; margin-top: 0px'>[Container: HTML / CSS / JavaScript (web responsive)]</div><div style='font-size: 80%; margin-top:10px'>Interfaz para votantes,<br />comité y auditor desde<br />celular o PC.</div>"]
+      style 5 fill:#438dd5,stroke:#2e6295,color:#ffffff
+    end
+
+    5-. "<div>Inicia sesión</div><div style='font-size: 70%'>[HTTPS/JSON]</div>" .->7
+    5-. "<div>Carga y consulta el padrón</div><div style='font-size: 70%'>[HTTPS/JSON]</div>" .->8
+    5-. "<div>Emite el voto</div><div style='font-size: 70%'>[HTTPS/JSON]</div>" .->9
+    5-. "<div>Solicita el escrutinio y los<br />resultados</div><div style='font-size: 70%'>[HTTPS/JSON]</div>" .->10
+    5-. "<div>Descarga el acta y las<br />papeletas anónimas</div><div style='font-size: 70%'>[HTTPS/JSON]</div>" .->11
+    7-. "<div>Verifica que el correo esté<br />habilitado</div><div style='font-size: 70%'></div>" .->8
+    9-. "<div>Verifica y registra la<br />participación</div><div style='font-size: 70%'></div>" .->8
+    9-. "<div>Registra eventos (puerto<br />RegistroAuditoria)</div><div style='font-size: 70%'></div>" .->12
+    10-. "<div>Lee las papeletas</div><div style='font-size: 70%'></div>" .->9
+    10-. "<div>Registra eventos (puerto<br />RegistroAuditoria)</div><div style='font-size: 70%'></div>" .->12
+    11-. "<div>Lee resultados y hash del<br />acta</div><div style='font-size: 70%'></div>" .->10
+    11-. "<div>Implementa el puerto<br />RegistroAuditoria</div><div style='font-size: 70%'></div>" .->12
+    7-. "<div>Autentica al estudiante</div><div style='font-size: 70%'>[OpenID Connect / HTTPS]</div>" .->14
+    9-. "<div>Envía el comprobante<br />(opcional)</div><div style='font-size: 70%'>[SMTP]</div>" .->15
+    8-. "<div>Lee y escribe (esquema<br />padron)</div><div style='font-size: 70%'>[SQL]</div>" .->13
+    9-. "<div>Guarda papeletas anónimas<br />(esquema urna)</div><div style='font-size: 70%'>[SQL]</div>" .->13
+    10-. "<div>Guarda resultados y acta</div><div style='font-size: 70%'>[SQL]</div>" .->13
+    11-. "<div>Lee y escribe (esquema<br />auditoria)</div><div style='font-size: 70%'>[SQL]</div>" .->13
+
+  end

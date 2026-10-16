@@ -1,12 +1,10 @@
-# Bitácora de uso de IA — VotoEPIS
-
+## Tabla resumen
+ 
 | # | Fecha | Herramienta | Prompt (resumen) | Qué propuso la IA | Qué verificamos o corregimos | Decisión |
-|---|---|---|---|---|---|---|
-| 1 | 29/09 | Gemini | Prompt RCRTF: Propuesta de 3 estilos para sistema de votación digital con ~300 concurrentes | Monolito en capas, Monolito modular y Microservicios con Kubernetes | Recomendó microservicios. Se rechazó por violar R-01 (1 mes), R-02 (2 devs) y R-03 (1 VPS). Sobredimensionado para 300 usuarios. | Rechazada |
-| 2 | 29/09 | Gemini | Abogado del diablo sobre Monolito Modular en un solo VPS | Alertó sobre cuello de botella en BD y acoplamiento accidental entre módulos | Se verificó y aceptó: se añadieron transacciones ACID independientes, linters de imports (`import-linter`) y esquemas lógicos separados. | Aceptada |
-| 3 | 30/09 | Gemini | Generación de código Mermaid para arquitectura monolítica modular | Código con sintaxis de subgraphs y capas | Se detectaron enlaces redundantes entre actores y módulos internos; se corrigió para que todo pase primero por la capa de Presentación Web. | Corregida |
-| 4 | 01/10 | Gemini | Generación de script en Python con la librería `diagrams` | Script usando clases no estándar (`diagrams.generic.blank`) para representar la urna | El módulo arrojó error de importación. Se verificó en la documentación oficial de `diagrams.mingrammer.com` y se usaron nodos nativos. | Corregida |
-| 5 | 02/10 | Gemini | Alternativa de votación anónima basada en Smart Contracts / Blockchain privada | Implementar un ledger distribuido para registrar cada voto | Se descartó por alta complejidad de despliegue, curva de aprendizaje y nula necesidad técnica para el alcance de un MVP en 1 mes. | Rechazada |
+|---|-------|-------------|------------------|-------------------|------------------------------|----------|
+| 1 | 16/10/2026 | Claude | Comparar los componentes C4 (nivel 3) con `docs/design/paquetes.puml` y la arquitectura del Lab 04 | Modelar 6 componentes con las mismas dependencias que `paquetes.puml`; señaló que `arquitectura.mmd` y el README conservan la flecha `Votacion -->\|registra eventos\| Auditoria` | Esa flecha crea el ciclo `votacion → auditoria → escrutinio → votacion`, que el ADR-004 dice haber eliminado con el puerto `RegistroAuditoria` en `compartido`. Se corrigió el Mermaid del Lab 04 (artefacto equivocado) | Corregida |
+| 2 | 16/10/2026 | Claude y Structurizr CLI | Generar el DSL y exportarlo a C4-PlantUML y Mermaid | Etiquetar los sistemas externos con `"Externo"` y un estilo gris | `validate` sin errores. En Mermaid los externos salen grises; en C4-PlantUML la etiqueta se pierde (`$tags=""`) y salen del mismo azul que VotoEPIS | Aceptada con limitación documentada |
+| 3 | 16/10/2026 | Claude | Prompt IA 1 con el inventario y los ADR | 3 contenedores: aplicación web, API Django y PostgreSQL | Se justifica la web separada (corre en el navegador del usuario; la guía pide 3 o más contenedores). Se rechazó Nginx y Docker Compose como contenedores (infraestructura, E5) y Redis/Celery (no figuran en los ADR) | Aceptada con ajustes |
 
 ## Anexo: Prompts completos
 

@@ -1,0 +1,57 @@
+@startuml
+title <size:24>Component View: VotoEPIS - API VotoEPIS</size>\n<size:24>Nivel 3: módulos de la API.</size>
+
+set separator none
+left to right direction
+
+<style>
+  root {
+    BackgroundColor: #ffffff
+    FontColor: #444444
+  }
+</style>
+
+!include <C4/C4>
+!include <C4/C4_Context>
+!include <C4/C4_Container>
+!include <C4/C4_Component>
+
+System(Proveedordeidentidadinstitucional, "Proveedor de identidad institucional", $descr="Autentica a los estudiantes con su correo institucional.", $tags="", $link="")
+System(Serviciodecorreo, "Servicio de correo", $descr="Entrega los comprobantes de participación.", $tags="", $link="")
+
+System_Boundary("VotoEPIS_boundary", "VotoEPIS", $tags="") {
+  Container_Boundary("VotoEPIS.APIVotoEPIS_boundary", "API VotoEPIS", $tags="") {
+    Component(VotoEPIS.APIVotoEPIS.MóduloEscrutinio, "Módulo Escrutinio", $techn="Django app", $descr="Cuenta los votos y genera los resultados y el acta.", $tags="", $link="")
+    Component(VotoEPIS.APIVotoEPIS.MóduloAuditoría, "Módulo Auditoría", $techn="Django app", $descr="Registra eventos y permite la verificación independiente del conteo.", $tags="", $link="")
+    Component(VotoEPIS.APIVotoEPIS.Puertoscompartidos, "Puertos compartidos", $techn="Python", $descr="Define interfaces comunes, como el puerto RegistroAuditoria.", $tags="", $link="")
+    Component(VotoEPIS.APIVotoEPIS.MóduloAutenticación, "Módulo Autenticación", $techn="Django app", $descr="Inicia sesión con el correo institucional y verifica que el estudiante esté en el padrón.", $tags="", $link="")
+    Component(VotoEPIS.APIVotoEPIS.MóduloPadrón, "Módulo Padrón", $techn="Django app", $descr="Administra el padrón electoral y el registro de participación.", $tags="", $link="")
+    Component(VotoEPIS.APIVotoEPIS.MóduloVotación, "Módulo Votación", $techn="Django app", $descr="Registra la papeleta anónima y controla el voto único por estudiante.", $tags="", $link="")
+  }
+
+  ContainerDb(VotoEPIS.Basededatos, "Base de datos", $techn="PostgreSQL", $descr="Padrón, participación, papeletas anónimas, resultados y auditoría (un esquema por módulo).", $tags="", $link="")
+  Container(VotoEPIS.Aplicaciónwebdevotación, "Aplicación web de votación", $techn="HTML / CSS / JavaScript (web responsive)", $descr="Interfaz para votantes, comité y auditor desde celular o PC.", $tags="", $link="")
+}
+
+Rel(VotoEPIS.Aplicaciónwebdevotación, VotoEPIS.APIVotoEPIS.MóduloAutenticación, "Inicia sesión", $techn="HTTPS/JSON", $tags="", $link="")
+Rel(VotoEPIS.Aplicaciónwebdevotación, VotoEPIS.APIVotoEPIS.MóduloPadrón, "Carga y consulta el padrón", $techn="HTTPS/JSON", $tags="", $link="")
+Rel(VotoEPIS.Aplicaciónwebdevotación, VotoEPIS.APIVotoEPIS.MóduloVotación, "Emite el voto", $techn="HTTPS/JSON", $tags="", $link="")
+Rel(VotoEPIS.Aplicaciónwebdevotación, VotoEPIS.APIVotoEPIS.MóduloEscrutinio, "Solicita el escrutinio y los resultados", $techn="HTTPS/JSON", $tags="", $link="")
+Rel(VotoEPIS.Aplicaciónwebdevotación, VotoEPIS.APIVotoEPIS.MóduloAuditoría, "Descarga el acta y las papeletas anónimas", $techn="HTTPS/JSON", $tags="", $link="")
+Rel(VotoEPIS.APIVotoEPIS.MóduloAutenticación, VotoEPIS.APIVotoEPIS.MóduloPadrón, "Verifica que el correo esté habilitado", $techn="", $tags="", $link="")
+Rel(VotoEPIS.APIVotoEPIS.MóduloVotación, VotoEPIS.APIVotoEPIS.MóduloPadrón, "Verifica y registra la participación", $techn="", $tags="", $link="")
+Rel(VotoEPIS.APIVotoEPIS.MóduloVotación, VotoEPIS.APIVotoEPIS.Puertoscompartidos, "Registra eventos (puerto RegistroAuditoria)", $techn="", $tags="", $link="")
+Rel(VotoEPIS.APIVotoEPIS.MóduloEscrutinio, VotoEPIS.APIVotoEPIS.MóduloVotación, "Lee las papeletas", $techn="", $tags="", $link="")
+Rel(VotoEPIS.APIVotoEPIS.MóduloEscrutinio, VotoEPIS.APIVotoEPIS.Puertoscompartidos, "Registra eventos (puerto RegistroAuditoria)", $techn="", $tags="", $link="")
+Rel(VotoEPIS.APIVotoEPIS.MóduloAuditoría, VotoEPIS.APIVotoEPIS.MóduloEscrutinio, "Lee resultados y hash del acta", $techn="", $tags="", $link="")
+Rel(VotoEPIS.APIVotoEPIS.MóduloAuditoría, VotoEPIS.APIVotoEPIS.Puertoscompartidos, "Implementa el puerto RegistroAuditoria", $techn="", $tags="", $link="")
+Rel(VotoEPIS.APIVotoEPIS.MóduloAutenticación, Proveedordeidentidadinstitucional, "Autentica al estudiante", $techn="OpenID Connect / HTTPS", $tags="", $link="")
+Rel(VotoEPIS.APIVotoEPIS.MóduloVotación, Serviciodecorreo, "Envía el comprobante (opcional)", $techn="SMTP", $tags="", $link="")
+Rel(VotoEPIS.APIVotoEPIS.MóduloPadrón, VotoEPIS.Basededatos, "Lee y escribe (esquema padron)", $techn="SQL", $tags="", $link="")
+Rel(VotoEPIS.APIVotoEPIS.MóduloVotación, VotoEPIS.Basededatos, "Guarda papeletas anónimas (esquema urna)", $techn="SQL", $tags="", $link="")
+Rel(VotoEPIS.APIVotoEPIS.MóduloEscrutinio, VotoEPIS.Basededatos, "Guarda resultados y acta", $techn="SQL", $tags="", $link="")
+Rel(VotoEPIS.APIVotoEPIS.MóduloAuditoría, VotoEPIS.Basededatos, "Lee y escribe (esquema auditoria)", $techn="SQL", $tags="", $link="")
+
+SHOW_LEGEND(true)
+hide stereotypes
+@enduml
