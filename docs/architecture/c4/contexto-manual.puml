@@ -1,0 +1,23 @@
+@startuml contexto-manual
+!include <C4/C4_Context>
+skinparam dpi 180
+LAYOUT_LEFT_RIGHT()
+title Contexto de VotoEPIS (C4-PlantUML escrito a mano)
+
+Person(estudiante, "Estudiante votante", "Estudiante habilitado de la EPIS que emite un voto secreto.")
+Person(comite, "Comité electoral", "Administra el padrón y las elecciones, realiza el escrutinio y firma el acta.")
+Person(auditor, "Auditor", "Verifica de forma independiente el conteo de la elección.")
+
+System(votoepis, "VotoEPIS", "Permite votar de forma secreta y verificable en las elecciones de delegados.")
+
+System_Ext(idp, "Proveedor de identidad institucional", "Autentica a los estudiantes con su correo institucional.")
+System_Ext(correo, "Servicio de correo", "Entrega los comprobantes de participación.")
+
+Rel(estudiante, votoepis, "Emite su voto secreto")
+Rel(comite, votoepis, "Administra elecciones, realiza el escrutinio y firma el acta")
+Rel(auditor, votoepis, "Verifica el conteo de forma independiente")
+Rel(votoepis, idp, "Autentica a los estudiantes", "HTTPS")
+Rel(votoepis, correo, "Envía comprobantes de participación", "SMTP")
+
+SHOW_LEGEND()
+@enduml

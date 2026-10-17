@@ -1,5 +1,12 @@
-## Vista dinámica de C4 vs. diagrama de secuencia UML (flujo "emitir un voto secreto")
+# Comparación de Vistas y Herramientas — VotoEPIS (Lab 06)
 
-La secuencia UML del Lab 05 muestra el detalle que necesita el developer: líneas de vida de clases, nombres de operaciones (regla C1), los fragmentos alt/opt para los casos de error (elección no abierta, voto duplicado), los retornos y el límite de la transacción atómica. La vista dinámica de C4 omite eso: solo muestra los pasos numerados entre componentes, contenedores y sistemas externos del camino feliz, sin ramas ni retornos. Sirve al equipo técnico, a operaciones y a quien quiera entender el recorrido sin leer clases; la secuencia sirve a quien va a programar y a probar. Además, la vista dinámica sale del mismo modelo que las demás, por lo que no se desactualiza si cambia el nombre de un componente.
+## 1. Vista Dinámica C4 vs. Diagrama de Secuencia UML (E4)
+La secuencia UML (`secuencia-emitir-voto.puml`) muestra el detalle algorítmico completo en 22 pasos: incluye nombres exactos de métodos (`estaAbierta()`, `existeParticipacion()`), fragmentos condicionales de error (`alt` para elección cerrada o intento de voto duplicado), envíos opcionales (`opt`), mensajes de retorno y el bloque de transacción atómica del ADR-002. La vista dinámica C4 (`EmitirVoto`) omite esas ramificaciones y resume el "camino feliz" en 6 interacciones de alto nivel entre contenedores y componentes. La vista dinámica sirve para explicar el flujo rápidamente al comité electoral, docentes o nuevos integrantes; la secuencia UML sirve a los desarrolladores para programar y escribir pruebas unitarias.
 
-<!-- E6 completará la comparación escritura a mano vs. modelo exportado -->
+## 2. Diagramación a mano (C4-PlantUML) vs. Modelado único exportado (Structurizr DSL) (E6)
+
+| Criterio | C4-PlantUML escrito a mano (`contexto-manual.puml`) | Modelo único en Structurizr DSL (`workspace.dsl`) |
+|---|---|---|
+| **Tiempo invertido** | Rápido para un único diagrama aislado (~5 min), pero lento cuando se deben crear y mantener 5 vistas distintas porque obliga a repetir definiciones. | Requiere ~15 min iniciales para declarar el modelo completo, pero las 5 vistas se exportan en segundos sin repetir elementos. |
+| **Errores encontrados** | Riesgo de inconsistencias de nombres o descripciones entre archivos `.puml` separados y olvido de leyendas o etiquetas si no se revisa manualmente. | El comando `structurizr validate` verifica automáticamente identificadores inexistentes, tipos inválidos y garantiza que toda flecha en una vista exista en el modelo. |
+| **Impacto si mañana cambia el nombre de un contenedor** | Habría que abrir y editar manualmente los archivos de Contenedores, Componentes, Vista Dinámica y Despliegue, corriendo el riesgo de olvidar alguno. | Se cambia el nombre en una sola línea dentro del bloque `model` de `workspace.dsl` y, al exportar, las vistas se actualizan de forma consistente. |
