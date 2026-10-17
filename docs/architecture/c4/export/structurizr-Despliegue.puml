@@ -1,0 +1,35 @@
+@startuml
+skinparam dpi 180
+title <size:24>Deployment View: VotoEPIS - Producción</size>\n<size:24>Despliegue en producción (MVP en un único VPS).</size>
+set separator none
+left to right direction
+
+<style>
+  root {
+    BackgroundColor: #ffffff
+    FontColor: #444444
+  }
+</style>
+
+!include <C4/C4>
+!include <C4/C4_Context>
+!include <C4/C4_Container>
+!include <C4/C4_Deployment>
+
+Deployment_Node(Produccion.CelularoPCdelusuario, "Celular o PC del usuario", $type="Android / iOS / Desktop (Navegador web)", $descr="Dispositivo de votantes, comité o auditor", $tags="", $link="") {
+  Container(Produccion.CelularoPCdelusuario.Aplicacionwebdevotacion_1, "Aplicación web de votación", $techn="HTML / CSS / JavaScript (web responsive)", $descr="Interfaz para votantes, comité y auditor desde celular o PC.", $tags="", $link="")
+}
+
+Deployment_Node(Produccion.VPSenlanube, "VPS en la nube", $type="Ubuntu 24.04 LTS, 2 vCPU, 4 GB RAM", $descr="Servidor único de bajo costo (R-03)", $tags="", $link="") {
+  Deployment_Node(Produccion.VPSenlanube.DockerComposeNginx, "Docker Compose + Nginx", $type="Docker 27 / Nginx 1.24", $descr="Orquestación local y reverse proxy HTTPS", $tags="", $link="") {
+    Container(Produccion.VPSenlanube.DockerComposeNginx.APIVotoEPIS_1, "API VotoEPIS", $techn="Python / Django", $descr="Monolito modular que implementa los casos de uso mediante una API REST.", $tags="", $link="")
+    ContainerDb(Produccion.VPSenlanube.DockerComposeNginx.Basededatos_1, "Base de datos", $techn="PostgreSQL 16", $descr="Padrón, participación, papeletas anónimas, resultados y auditoría (un esquema por módulo).", $tags="", $link="")
+  }
+}
+
+Rel(Produccion.CelularoPCdelusuario.Aplicacionwebdevotacion_1, Produccion.VPSenlanube.DockerComposeNginx.APIVotoEPIS_1, "Envía solicitudes", $techn="HTTPS/JSON (REST)", $tags="", $link="")
+Rel(Produccion.VPSenlanube.DockerComposeNginx.APIVotoEPIS_1, Produccion.VPSenlanube.DockerComposeNginx.Basededatos_1, "Lee y escribe", $techn="SQL/TCP", $tags="", $link="")
+
+SHOW_LEGEND(true)
+hide stereotypes
+@enduml

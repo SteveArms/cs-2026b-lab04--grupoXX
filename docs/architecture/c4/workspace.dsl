@@ -3,16 +3,15 @@ workspace "VotoEPIS" "Modelo C4 de la plataforma de elección digital de delegad
     !identifiers hierarchical
 
     model {
-
         // ===== [E1] Personas, sistema y sistemas externos =====
         estudiante = person "Estudiante votante" "Estudiante habilitado de la EPIS que emite un voto secreto."
         comite = person "Comité electoral" "Administra el padrón y las elecciones, realiza el escrutinio y firma el acta."
         auditor = person "Auditor" "Verifica de forma independiente el conteo de la elección."
+
         votoepis = softwareSystem "VotoEPIS" "Permite votar de forma secreta y verificable en las elecciones de delegados." {
             // ===== [E2] Contenedores =====
             web = container "Aplicación web de votación" "Interfaz para votantes, comité y auditor desde celular o PC." "HTML / CSS / JavaScript (web responsive)" "Web Browser"
             api = container "API VotoEPIS" "Monolito modular que implementa los casos de uso mediante una API REST." "Python / Django" {
-
                 // ===== [E3] Componentes (= paquetes de docs/design/paquetes.puml) =====
                 autenticacion = component "Módulo Autenticación" "Inicia sesión con el correo institucional y verifica que el estudiante esté en el padrón." "Django app"
                 padron = component "Módulo Padrón" "Administra el padrón electoral y el registro de participación." "Django app"
@@ -21,8 +20,7 @@ workspace "VotoEPIS" "Modelo C4 de la plataforma de elección digital de delegad
                 auditoria = component "Módulo Auditoría" "Registra eventos y permite la verificación independiente del conteo." "Django app"
                 compartido = component "Puertos compartidos" "Define interfaces comunes, como el puerto RegistroAuditoria." "Python"
             }
-
-            db = container "Base de datos" "Padrón, participación, papeletas anónimas, resultados y auditoría (un esquema por módulo)." "PostgreSQL" "Database"
+            db = container "Base de datos" "Padrón, participación, papeletas anónimas, resultados y auditoría (un esquema por módulo)." "PostgreSQL 16" "Database"
         }
 
         idp = softwareSystem "Proveedor de identidad institucional" "Autentica a los estudiantes con su correo institucional." "Externo"
@@ -66,10 +64,22 @@ workspace "VotoEPIS" "Modelo C4 de la plataforma de elección digital de delegad
         votoepis.api.votacion -> votoepis.db "Guarda papeletas anónimas (esquema urna)" "SQL"
         votoepis.api.escrutinio -> votoepis.db "Guarda resultados y acta" "SQL"
         votoepis.api.auditoria -> votoepis.db "Lee y escribe (esquema auditoria)" "SQL"
+
+        // ===== [E5] Entorno de despliegue (coherente con R-03 y despliegue.py) =====
+        produccion = deploymentEnvironment "Producción" {
+            deploymentNode "Celular o PC del usuario" "Dispositivo de votantes, comité o auditor" "Android / iOS / Desktop (Navegador web)" {
+                containerInstance votoepis.web
+            }
+            deploymentNode "VPS en la nube" "Servidor único de bajo costo (R-03)" "Ubuntu 24.04 LTS, 2 vCPU, 4 GB RAM" {
+                deploymentNode "Docker Compose + Nginx" "Orquestación local y reverse proxy HTTPS" "Docker 27 / Nginx 1.24" {
+                    containerInstance votoepis.api
+                    containerInstance votoepis.db
+                }
+            }
+        }
     }
 
     views {
-
         // ===== [E1] Nivel 1 =====
         systemContext votoepis "Contexto" "Nivel 1: VotoEPIS y su entorno." {
             include *
@@ -88,7 +98,7 @@ workspace "VotoEPIS" "Modelo C4 de la plataforma de elección digital de delegad
             autolayout lr
         }
 
-        // ===== [E4] Vista dinámica: emitir un voto secreto (Lab 05: secuencia-emitir-voto.puml) =====
+        // ===== [E4] Vista dinámica: emitir un voto secreto =====
         dynamic votoepis.api "EmitirVoto" "Dinámico: un estudiante emite su voto secreto." {
             votoepis.web -> votoepis.api.votacion "Envía el voto: POST /elecciones/{id}/voto"
             votoepis.api.votacion -> votoepis.api.padron "Verifica y registra la participación"
@@ -96,6 +106,12 @@ workspace "VotoEPIS" "Modelo C4 de la plataforma de elección digital de delegad
             votoepis.api.votacion -> votoepis.db "Guarda la papeleta anónima"
             votoepis.api.votacion -> votoepis.api.compartido "Registra el evento VOTO_EMITIDO"
             votoepis.api.votacion -> correo "Envía el comprobante (opcional)"
+            autolayout lr
+        }
+
+        // ===== [E5] Vista de despliegue =====
+        deployment votoepis produccion "Despliegue" "Despliegue en producción (MVP en un único VPS)." {
+            include *
             autolayout lr
         }
 

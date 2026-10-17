@@ -1,0 +1,26 @@
+graph LR
+  linkStyle default fill:#ffffff
+
+  subgraph diagram ["Deployment View: VotoEPIS - Producción"]
+    style diagram fill:#ffffff,stroke:#ffffff
+
+    subgraph 50 ["Celular o PC del usuario"]
+      style 50 fill:#ffffff,stroke:#444444,color:#444444
+      51["<div style='font-weight: bold'>Aplicación web de votación</div><div style='font-size: 70%; margin-top: 0px'>[Container: HTML / CSS / JavaScript (web responsive)]</div><div style='font-size: 80%; margin-top:10px'>Interfaz para votantes, comité<br />y auditor desde celular o PC.</div>"]
+      style 51 fill:#438dd5,stroke:#2e6295,color:#ffffff
+    end
+
+    subgraph 52 ["VPS en la nube"]
+      style 52 fill:#ffffff,stroke:#444444,color:#444444
+      subgraph 53 ["Docker Compose + Nginx"]
+        style 53 fill:#ffffff,stroke:#444444,color:#444444
+        54["<div style='font-weight: bold'>API VotoEPIS</div><div style='font-size: 70%; margin-top: 0px'>[Container: Python / Django]</div><div style='font-size: 80%; margin-top:10px'>Monolito modular que<br />implementa los casos de uso<br />mediante una API REST.</div>"]
+        style 54 fill:#438dd5,stroke:#2e6295,color:#ffffff
+        55[("<div style='font-weight: bold'>Base de datos</div><div style='font-size: 70%; margin-top: 0px'>[Container: PostgreSQL 16]</div><div style='font-size: 80%; margin-top:10px'>Padrón, participación,<br />papeletas anónimas, resultados<br />y auditoría (un esquema por<br />módulo).</div>")]
+        style 55 fill:#438dd5,stroke:#2e6295,color:#ffffff
+      end
+    end
+
+    51-. "<div>Envía solicitudes</div><div style='font-size: 70%'>[HTTPS/JSON (REST)]</div>" .->54
+    54-. "<div>Lee y escribe</div><div style='font-size: 70%'>[SQL/TCP]</div>" .->55
+  end
