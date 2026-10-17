@@ -86,3 +86,55 @@ stateDiagram-v2
 | **E6: Round-Trip Engineering** | [`round-trip.md`](docs/design/round-trip.md) | [Clases Pyreverse](docs/design/img/classes_votoepis.png) |
 | **E7: Auditoría C1-C5** | [`consistencia.md`](docs/design/consistencia.md) | [Bitácora de IA](docs/design/bitacora-ia.md) |
 | **Arquitectura: Nuevo ADR** | [`ADR-004`](docs/architecture/adr/004-puerto-auditoria-en-compartido.md) | — |
+
+---
+
+## Arquitectura C4 (Lab 06)
+
+Modelo C4 unificado en Structurizr DSL ([`workspace.dsl`](docs/architecture/c4/workspace.dsl)), coherente con las decisiones arquitectónicas (ADR-001 a ADR-004) y el diseño detallado UML (Lab 05).
+
+### Nivel 1: Vista de Contexto (Mermaid exportado)
+```mermaid
+graph LR
+  linkStyle default fill:#ffffff
+
+  subgraph diagram ["System Context View: VotoEPIS"]
+    style diagram fill:#ffffff,stroke:#ffffff
+
+    1["<div style='font-weight: bold'>Estudiante votante</div><div style='font-size: 70%; margin-top: 0px'>[Person]</div><div style='font-size: 80%; margin-top:10px'>Estudiante habilitado de la<br />EPIS que emite un voto<br />secreto.</div>"]
+    style 1 fill:#08427b,stroke:#052e56,color:#ffffff
+    2["<div style='font-weight: bold'>Comité electoral</div><div style='font-size: 70%; margin-top: 0px'>[Person]</div><div style='font-size: 80%; margin-top:10px'>Administra el padrón y las<br />elecciones, realiza el<br />escrutinio y firma el acta.</div>"]
+    style 2 fill:#08427b,stroke:#052e56,color:#ffffff
+    3["<div style='font-weight: bold'>Auditor</div><div style='font-size: 70%; margin-top: 0px'>[Person]</div><div style='font-size: 80%; margin-top:10px'>Verifica de forma<br />independiente el conteo de la<br />elección.</div>"]
+    style 3 fill:#08427b,stroke:#052e56,color:#ffffff
+    4["<div style='font-weight: bold'>VotoEPIS</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>Permite votar de forma<br />secreta y verificable en las<br />elecciones de delegados.</div>"]
+    style 4 fill:#1168bd,stroke:#0b4884,color:#ffffff
+    14["<div style='font-weight: bold'>Proveedor de identidad institucional</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>Autentica a los estudiantes<br />con su correo institucional.</div>"]
+    style 14 fill:#999999,stroke:#6b6b6b,color:#ffffff
+    15["<div style='font-weight: bold'>Servicio de correo</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>Entrega los comprobantes de<br />participación.</div>"]
+    style 15 fill:#999999,stroke:#6b6b6b,color:#ffffff
+
+    1-. "<div>Emite su voto secreto</div>" .->4
+    2-. "<div>Administra elecciones, realiza<br />el escrutinio y firma el acta</div>" .->4
+    3-. "<div>Verifica el conteo de forma<br />independiente</div>" .->4
+    4-. "<div>Autentica a los estudiantes</div><div style='font-size: 70%'>[HTTPS]</div>" .->14
+    4-. "<div>Envía comprobantes de<br />participación</div><div style='font-size: 70%'>[SMTP]</div>" .->15
+  end
+```
+
+### Vistas y Documentación C4
+| Entregable / Vista | Fuente / Exportado | Imagen Renderizada |
+|---|---|---|
+| **Inventario C4** | [`inventario.md`](docs/architecture/c4/inventario.md) | — |
+| **Modelo Único (DSL)** | [`workspace.dsl`](docs/architecture/c4/workspace.dsl) | — |
+| **Nivel 1: Contexto** | [`structurizr-Contexto.puml`](docs/architecture/c4/export/structurizr-Contexto.puml) | [Ver PNG](docs/architecture/c4/img/structurizr-Contexto.png) |
+| **Nivel 2: Contenedores** | [`structurizr-Contenedores.puml`](docs/architecture/c4/export/structurizr-Contenedores.puml) | [Ver PNG](docs/architecture/c4/img/structurizr-Contenedores.png) |
+| **Nivel 3: Componentes** | [`structurizr-Componentes.puml`](docs/architecture/c4/export/structurizr-Componentes.puml) | [Ver PNG](docs/architecture/c4/img/structurizr-Componentes.png) |
+| **Nivel 4: Código (Lab 05)** | [`clases.puml`](docs/design/clases.puml) | [Ver PNG](docs/design/img/clases-votacion.png) |
+| **Vista Dinámica** | [`structurizr-EmitirVoto.puml`](docs/architecture/c4/export/structurizr-EmitirVoto.puml) | [Ver PNG](docs/architecture/c4/img/structurizr-EmitirVoto.png) |
+| **Vista de Despliegue** | [`structurizr-Despliegue.puml`](docs/architecture/c4/export/structurizr-Despliegue.puml) | [Ver PNG](docs/architecture/c4/img/structurizr-Despliegue.png) |
+| **Contexto Manual** | [`contexto-manual.puml`](docs/architecture/c4/contexto-manual.puml) | [Ver PNG](docs/architecture/c4/img/contexto-manual.png) |
+| **Comparación** | [`comparacion.md`](docs/architecture/c4/comparacion.md) | — |
+| **Revisión Oficial C4** | [`revision-c4.md`](docs/architecture/c4/revision-c4.md) | — |
+| **Explicación No Técnica** | [`explicacion.md`](docs/architecture/c4/explicacion.md) | — |
+| **Bitácora de IA (Lab 06)** | [`bitacora-ia.md`](docs/architecture/c4/bitacora-ia.md) | — |
