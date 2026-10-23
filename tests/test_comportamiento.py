@@ -10,7 +10,7 @@ import pytest
 
 from votacion.externos import CorreoSDK, OtpComiteSDK, ProveedorIdentidadSDK
 
-VERSIONES = ["votacion.antes.servicio"]  # E2 agrega "votacion.servicio"
+VERSIONES = ["votacion.antes.servicio", "votacion.servicio"]
 
 ANA = "ana@unsa.edu.pe"
 BETO = "beto@unsa.edu.pe"
