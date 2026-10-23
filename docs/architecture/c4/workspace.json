@@ -1,0 +1,685 @@
+{
+  "configuration" : { },
+  "description" : "Modelo C4 de la plataforma de elección digital de delegados estudiantiles de la EPIS-UNSA",
+  "documentation" : { },
+  "id" : 1,
+  "lastModifiedDate" : "2026-10-16T20:57:54Z",
+  "model" : {
+    "people" : [ {
+      "description" : "Estudiante habilitado de la EPIS que emite un voto secreto.",
+      "id" : "1",
+      "name" : "Estudiante votante",
+      "properties" : {
+        "structurizr.dsl.identifier" : "estudiante"
+      },
+      "relationships" : [ {
+        "description" : "Emite su voto secreto",
+        "destinationId" : "4",
+        "id" : "16",
+        "sourceId" : "1",
+        "tags" : "Relationship"
+      }, {
+        "description" : "Emite su voto",
+        "destinationId" : "5",
+        "id" : "21",
+        "sourceId" : "1",
+        "tags" : "Relationship",
+        "technology" : "HTTPS"
+      } ],
+      "tags" : "Element,Person"
+    }, {
+      "description" : "Administra el padrón y las elecciones, realiza el escrutinio y firma el acta.",
+      "id" : "2",
+      "name" : "Comité electoral",
+      "properties" : {
+        "structurizr.dsl.identifier" : "comite"
+      },
+      "relationships" : [ {
+        "description" : "Administra elecciones, realiza el escrutinio y firma el acta",
+        "destinationId" : "4",
+        "id" : "17",
+        "sourceId" : "2",
+        "tags" : "Relationship"
+      }, {
+        "description" : "Administra elecciones y firma el acta",
+        "destinationId" : "5",
+        "id" : "22",
+        "sourceId" : "2",
+        "tags" : "Relationship",
+        "technology" : "HTTPS"
+      } ],
+      "tags" : "Element,Person"
+    }, {
+      "description" : "Verifica de forma independiente el conteo de la elección.",
+      "id" : "3",
+      "name" : "Auditor",
+      "properties" : {
+        "structurizr.dsl.identifier" : "auditor"
+      },
+      "relationships" : [ {
+        "description" : "Verifica el conteo de forma independiente",
+        "destinationId" : "4",
+        "id" : "18",
+        "sourceId" : "3",
+        "tags" : "Relationship"
+      }, {
+        "description" : "Descarga papeletas anónimas y acta",
+        "destinationId" : "5",
+        "id" : "23",
+        "sourceId" : "3",
+        "tags" : "Relationship",
+        "technology" : "HTTPS"
+      } ],
+      "tags" : "Element,Person"
+    } ],
+    "softwareSystems" : [ {
+      "containers" : [ {
+        "description" : "Interfaz para votantes, comité y auditor desde celular o PC.",
+        "documentation" : { },
+        "id" : "5",
+        "name" : "Aplicación web de votación",
+        "properties" : {
+          "structurizr.dsl.identifier" : "votoepis.web"
+        },
+        "relationships" : [ {
+          "description" : "Envía solicitudes",
+          "destinationId" : "6",
+          "id" : "24",
+          "sourceId" : "5",
+          "tags" : "Relationship",
+          "technology" : "HTTPS/JSON (REST)"
+        }, {
+          "description" : "Inicia sesión",
+          "destinationId" : "7",
+          "id" : "28",
+          "sourceId" : "5",
+          "tags" : "Relationship",
+          "technology" : "HTTPS/JSON"
+        }, {
+          "description" : "Carga y consulta el padrón",
+          "destinationId" : "8",
+          "id" : "29",
+          "sourceId" : "5",
+          "tags" : "Relationship",
+          "technology" : "HTTPS/JSON"
+        }, {
+          "description" : "Emite el voto",
+          "destinationId" : "9",
+          "id" : "30",
+          "sourceId" : "5",
+          "tags" : "Relationship",
+          "technology" : "HTTPS/JSON"
+        }, {
+          "description" : "Solicita el escrutinio y los resultados",
+          "destinationId" : "10",
+          "id" : "31",
+          "sourceId" : "5",
+          "tags" : "Relationship",
+          "technology" : "HTTPS/JSON"
+        }, {
+          "description" : "Descarga el acta y las papeletas anónimas",
+          "destinationId" : "11",
+          "id" : "32",
+          "sourceId" : "5",
+          "tags" : "Relationship",
+          "technology" : "HTTPS/JSON"
+        } ],
+        "tags" : "Element,Container,Web Browser",
+        "technology" : "HTML / CSS / JavaScript (web responsive)"
+      }, {
+        "components" : [ {
+          "description" : "Inicia sesión con el correo institucional y verifica que el estudiante esté en el padrón.",
+          "documentation" : { },
+          "id" : "7",
+          "name" : "Módulo Autenticación",
+          "properties" : {
+            "structurizr.dsl.identifier" : "votoepis.api.autenticacion"
+          },
+          "relationships" : [ {
+            "description" : "Verifica que el correo esté habilitado",
+            "destinationId" : "8",
+            "id" : "33",
+            "sourceId" : "7",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Autentica al estudiante",
+            "destinationId" : "14",
+            "id" : "40",
+            "sourceId" : "7",
+            "tags" : "Relationship",
+            "technology" : "OpenID Connect / HTTPS"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Django app"
+        }, {
+          "description" : "Administra el padrón electoral y el registro de participación.",
+          "documentation" : { },
+          "id" : "8",
+          "name" : "Módulo Padrón",
+          "properties" : {
+            "structurizr.dsl.identifier" : "votoepis.api.padron"
+          },
+          "relationships" : [ {
+            "description" : "Lee y escribe (esquema padron)",
+            "destinationId" : "13",
+            "id" : "42",
+            "sourceId" : "8",
+            "tags" : "Relationship",
+            "technology" : "SQL"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Django app"
+        }, {
+          "description" : "Registra la papeleta anónima y controla el voto único por estudiante.",
+          "documentation" : { },
+          "id" : "9",
+          "name" : "Módulo Votación",
+          "properties" : {
+            "structurizr.dsl.identifier" : "votoepis.api.votacion"
+          },
+          "relationships" : [ {
+            "description" : "Verifica y registra la participación",
+            "destinationId" : "8",
+            "id" : "34",
+            "sourceId" : "9",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Registra eventos (puerto RegistroAuditoria)",
+            "destinationId" : "12",
+            "id" : "35",
+            "sourceId" : "9",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Envía el comprobante (opcional)",
+            "destinationId" : "15",
+            "id" : "41",
+            "sourceId" : "9",
+            "tags" : "Relationship",
+            "technology" : "SMTP"
+          }, {
+            "description" : "Guarda papeletas anónimas (esquema urna)",
+            "destinationId" : "13",
+            "id" : "43",
+            "sourceId" : "9",
+            "tags" : "Relationship",
+            "technology" : "SQL"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Django app"
+        }, {
+          "description" : "Cuenta los votos y genera los resultados y el acta.",
+          "documentation" : { },
+          "id" : "10",
+          "name" : "Módulo Escrutinio",
+          "properties" : {
+            "structurizr.dsl.identifier" : "votoepis.api.escrutinio"
+          },
+          "relationships" : [ {
+            "description" : "Lee las papeletas",
+            "destinationId" : "9",
+            "id" : "36",
+            "sourceId" : "10",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Registra eventos (puerto RegistroAuditoria)",
+            "destinationId" : "12",
+            "id" : "37",
+            "sourceId" : "10",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Guarda resultados y acta",
+            "destinationId" : "13",
+            "id" : "44",
+            "sourceId" : "10",
+            "tags" : "Relationship",
+            "technology" : "SQL"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Django app"
+        }, {
+          "description" : "Registra eventos y permite la verificación independiente del conteo.",
+          "documentation" : { },
+          "id" : "11",
+          "name" : "Módulo Auditoría",
+          "properties" : {
+            "structurizr.dsl.identifier" : "votoepis.api.auditoria"
+          },
+          "relationships" : [ {
+            "description" : "Lee resultados y hash del acta",
+            "destinationId" : "10",
+            "id" : "38",
+            "sourceId" : "11",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Implementa el puerto RegistroAuditoria",
+            "destinationId" : "12",
+            "id" : "39",
+            "sourceId" : "11",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Lee y escribe (esquema auditoria)",
+            "destinationId" : "13",
+            "id" : "45",
+            "sourceId" : "11",
+            "tags" : "Relationship",
+            "technology" : "SQL"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Django app"
+        }, {
+          "description" : "Define interfaces comunes, como el puerto RegistroAuditoria.",
+          "documentation" : { },
+          "id" : "12",
+          "name" : "Puertos compartidos",
+          "properties" : {
+            "structurizr.dsl.identifier" : "votoepis.api.compartido"
+          },
+          "tags" : "Element,Component",
+          "technology" : "Python"
+        } ],
+        "description" : "Monolito modular que implementa los casos de uso mediante una API REST.",
+        "documentation" : { },
+        "id" : "6",
+        "name" : "API VotoEPIS",
+        "properties" : {
+          "structurizr.dsl.identifier" : "votoepis.api"
+        },
+        "relationships" : [ {
+          "description" : "Lee y escribe",
+          "destinationId" : "13",
+          "id" : "25",
+          "sourceId" : "6",
+          "tags" : "Relationship",
+          "technology" : "SQL/TCP"
+        }, {
+          "description" : "Autentica a los estudiantes",
+          "destinationId" : "14",
+          "id" : "26",
+          "sourceId" : "6",
+          "tags" : "Relationship",
+          "technology" : "OpenID Connect / HTTPS"
+        }, {
+          "description" : "Envía comprobantes",
+          "destinationId" : "15",
+          "id" : "27",
+          "sourceId" : "6",
+          "tags" : "Relationship",
+          "technology" : "SMTP"
+        } ],
+        "tags" : "Element,Container",
+        "technology" : "Python / Django"
+      }, {
+        "description" : "Padrón, participación, papeletas anónimas, resultados y auditoría (un esquema por módulo).",
+        "documentation" : { },
+        "id" : "13",
+        "name" : "Base de datos",
+        "properties" : {
+          "structurizr.dsl.identifier" : "votoepis.db"
+        },
+        "tags" : "Element,Container,Database",
+        "technology" : "PostgreSQL"
+      } ],
+      "description" : "Permite votar de forma secreta y verificable en las elecciones de delegados.",
+      "documentation" : { },
+      "id" : "4",
+      "name" : "VotoEPIS",
+      "properties" : {
+        "structurizr.dsl.identifier" : "votoepis"
+      },
+      "relationships" : [ {
+        "description" : "Autentica a los estudiantes",
+        "destinationId" : "14",
+        "id" : "19",
+        "sourceId" : "4",
+        "tags" : "Relationship",
+        "technology" : "HTTPS"
+      }, {
+        "description" : "Envía comprobantes de participación",
+        "destinationId" : "15",
+        "id" : "20",
+        "sourceId" : "4",
+        "tags" : "Relationship",
+        "technology" : "SMTP"
+      } ],
+      "tags" : "Element,Software System"
+    }, {
+      "description" : "Autentica a los estudiantes con su correo institucional.",
+      "documentation" : { },
+      "id" : "14",
+      "name" : "Proveedor de identidad institucional",
+      "properties" : {
+        "structurizr.dsl.identifier" : "idp"
+      },
+      "tags" : "Element,Software System,Externo"
+    }, {
+      "description" : "Entrega los comprobantes de participación.",
+      "documentation" : { },
+      "id" : "15",
+      "name" : "Servicio de correo",
+      "properties" : {
+        "structurizr.dsl.identifier" : "correo"
+      },
+      "tags" : "Element,Software System,Externo"
+    } ]
+  },
+  "name" : "VotoEPIS",
+  "properties" : {
+    "structurizr.inspection.error" : "13",
+    "structurizr.dsl" : "d29ya3NwYWNlICJWb3RvRVBJUyIgIk1vZGVsbyBDNCBkZSBsYSBwbGF0YWZvcm1hIGRlIGVsZWNjacOzbiBkaWdpdGFsIGRlIGRlbGVnYWRvcyBlc3R1ZGlhbnRpbGVzIGRlIGxhIEVQSVMtVU5TQSIgewoKICAgICFpZGVudGlmaWVycyBoaWVyYXJjaGljYWwKCiAgICBtb2RlbCB7CgogICAgICAgIC8vID09PT09IFtFMV0gUGVyc29uYXMsIHNpc3RlbWEgeSBzaXN0ZW1hcyBleHRlcm5vcyA9PT09PQogICAgICAgIGVzdHVkaWFudGUgPSBwZXJzb24gIkVzdHVkaWFudGUgdm90YW50ZSIgIkVzdHVkaWFudGUgaGFiaWxpdGFkbyBkZSBsYSBFUElTIHF1ZSBlbWl0ZSB1biB2b3RvIHNlY3JldG8uIgogICAgICAgIGNvbWl0ZSA9IHBlcnNvbiAiQ29taXTDqSBlbGVjdG9yYWwiICJBZG1pbmlzdHJhIGVsIHBhZHLDs24geSBsYXMgZWxlY2Npb25lcywgcmVhbGl6YSBlbCBlc2NydXRpbmlvIHkgZmlybWEgZWwgYWN0YS4iCiAgICAgICAgYXVkaXRvciA9IHBlcnNvbiAiQXVkaXRvciIgIlZlcmlmaWNhIGRlIGZvcm1hIGluZGVwZW5kaWVudGUgZWwgY29udGVvIGRlIGxhIGVsZWNjacOzbi4iCgogICAgICAgIHZvdG9lcGlzID0gc29mdHdhcmVTeXN0ZW0gIlZvdG9FUElTIiAiUGVybWl0ZSB2b3RhciBkZSBmb3JtYSBzZWNyZXRhIHkgdmVyaWZpY2FibGUgZW4gbGFzIGVsZWNjaW9uZXMgZGUgZGVsZWdhZG9zLiIgewoKICAgICAgICAgICAgLy8gPT09PT0gW0UyXSBDb250ZW5lZG9yZXMgPT09PT0KICAgICAgICAgICAgd2ViID0gY29udGFpbmVyICJBcGxpY2FjacOzbiB3ZWIgZGUgdm90YWNpw7NuIiAiSW50ZXJmYXogcGFyYSB2b3RhbnRlcywgY29taXTDqSB5IGF1ZGl0b3IgZGVzZGUgY2VsdWxhciBvIFBDLiIgIkhUTUwgLyBDU1MgLyBKYXZhU2NyaXB0ICh3ZWIgcmVzcG9uc2l2ZSkiICJXZWIgQnJvd3NlciIKCiAgICAgICAgICAgIGFwaSA9IGNvbnRhaW5lciAiQVBJIFZvdG9FUElTIiAiTW9ub2xpdG8gbW9kdWxhciBxdWUgaW1wbGVtZW50YSBsb3MgY2Fzb3MgZGUgdXNvIG1lZGlhbnRlIHVuYSBBUEkgUkVTVC4iICJQeXRob24gLyBEamFuZ28iIHsKCiAgICAgICAgICAgICAgICAvLyA9PT09PSBbRTNdIENvbXBvbmVudGVzICg9IHBhcXVldGVzIGRlIGRvY3MvZGVzaWduL3BhcXVldGVzLnB1bWwpID09PT09CiAgICAgICAgICAgICAgICBhdXRlbnRpY2FjaW9uID0gY29tcG9uZW50ICJNw7NkdWxvIEF1dGVudGljYWNpw7NuIiAiSW5pY2lhIHNlc2nDs24gY29uIGVsIGNvcnJlbyBpbnN0aXR1Y2lvbmFsIHkgdmVyaWZpY2EgcXVlIGVsIGVzdHVkaWFudGUgZXN0w6kgZW4gZWwgcGFkcsOzbi4iICJEamFuZ28gYXBwIgogICAgICAgICAgICAgICAgcGFkcm9uID0gY29tcG9uZW50ICJNw7NkdWxvIFBhZHLDs24iICJBZG1pbmlzdHJhIGVsIHBhZHLDs24gZWxlY3RvcmFsIHkgZWwgcmVnaXN0cm8gZGUgcGFydGljaXBhY2nDs24uIiAiRGphbmdvIGFwcCIKICAgICAgICAgICAgICAgIHZvdGFjaW9uID0gY29tcG9uZW50ICJNw7NkdWxvIFZvdGFjacOzbiIgIlJlZ2lzdHJhIGxhIHBhcGVsZXRhIGFuw7NuaW1hIHkgY29udHJvbGEgZWwgdm90byDDum5pY28gcG9yIGVzdHVkaWFudGUuIiAiRGphbmdvIGFwcCIKICAgICAgICAgICAgICAgIGVzY3J1dGluaW8gPSBjb21wb25lbnQgIk3Ds2R1bG8gRXNjcnV0aW5pbyIgIkN1ZW50YSBsb3Mgdm90b3MgeSBnZW5lcmEgbG9zIHJlc3VsdGFkb3MgeSBlbCBhY3RhLiIgIkRqYW5nbyBhcHAiCiAgICAgICAgICAgICAgICBhdWRpdG9yaWEgPSBjb21wb25lbnQgIk3Ds2R1bG8gQXVkaXRvcsOtYSIgIlJlZ2lzdHJhIGV2ZW50b3MgeSBwZXJtaXRlIGxhIHZlcmlmaWNhY2nDs24gaW5kZXBlbmRpZW50ZSBkZWwgY29udGVvLiIgIkRqYW5nbyBhcHAiCiAgICAgICAgICAgICAgICBjb21wYXJ0aWRvID0gY29tcG9uZW50ICJQdWVydG9zIGNvbXBhcnRpZG9zIiAiRGVmaW5lIGludGVyZmFjZXMgY29tdW5lcywgY29tbyBlbCBwdWVydG8gUmVnaXN0cm9BdWRpdG9yaWEuIiAiUHl0aG9uIgogICAgICAgICAgICB9CgogICAgICAgICAgICBkYiA9IGNvbnRhaW5lciAiQmFzZSBkZSBkYXRvcyIgIlBhZHLDs24sIHBhcnRpY2lwYWNpw7NuLCBwYXBlbGV0YXMgYW7Ds25pbWFzLCByZXN1bHRhZG9zIHkgYXVkaXRvcsOtYSAodW4gZXNxdWVtYSBwb3IgbcOzZHVsbykuIiAiUG9zdGdyZVNRTCIgIkRhdGFiYXNlIgogICAgICAgIH0KCiAgICAgICAgaWRwID0gc29mdHdhcmVTeXN0ZW0gIlByb3ZlZWRvciBkZSBpZGVudGlkYWQgaW5zdGl0dWNpb25hbCIgIkF1dGVudGljYSBhIGxvcyBlc3R1ZGlhbnRlcyBjb24gc3UgY29ycmVvIGluc3RpdHVjaW9uYWwuIiAiRXh0ZXJubyIKICAgICAgICBjb3JyZW8gPSBzb2Z0d2FyZVN5c3RlbSAiU2VydmljaW8gZGUgY29ycmVvIiAiRW50cmVnYSBsb3MgY29tcHJvYmFudGVzIGRlIHBhcnRpY2lwYWNpw7NuLiIgIkV4dGVybm8iCgogICAgICAgIC8vIC0tLSBbRTFdIFJlbGFjaW9uZXMgZGUgbml2ZWwgMSAodmVyYm8gZGUgaW50ZW5jacOzbikgLS0tCiAgICAgICAgZXN0dWRpYW50ZSAtPiB2b3RvZXBpcyAiRW1pdGUgc3Ugdm90byBzZWNyZXRvIgogICAgICAgIGNvbWl0ZSAtPiB2b3RvZXBpcyAiQWRtaW5pc3RyYSBlbGVjY2lvbmVzLCByZWFsaXphIGVsIGVzY3J1dGluaW8geSBmaXJtYSBlbCBhY3RhIgogICAgICAgIGF1ZGl0b3IgLT4gdm90b2VwaXMgIlZlcmlmaWNhIGVsIGNvbnRlbyBkZSBmb3JtYSBpbmRlcGVuZGllbnRlIgogICAgICAgIHZvdG9lcGlzIC0+IGlkcCAiQXV0ZW50aWNhIGEgbG9zIGVzdHVkaWFudGVzIiAiSFRUUFMiCiAgICAgICAgdm90b2VwaXMgLT4gY29ycmVvICJFbnbDrWEgY29tcHJvYmFudGVzIGRlIHBhcnRpY2lwYWNpw7NuIiAiU01UUCIKCiAgICAgICAgLy8gLS0tIFtFMl0gUmVsYWNpb25lcyBkZSBuaXZlbCAyICh2ZXJibyArIHByb3RvY29sbykgLS0tCiAgICAgICAgZXN0dWRpYW50ZSAtPiB2b3RvZXBpcy53ZWIgIkVtaXRlIHN1IHZvdG8iICJIVFRQUyIKICAgICAgICBjb21pdGUgLT4gdm90b2VwaXMud2ViICJBZG1pbmlzdHJhIGVsZWNjaW9uZXMgeSBmaXJtYSBlbCBhY3RhIiAiSFRUUFMiCiAgICAgICAgYXVkaXRvciAtPiB2b3RvZXBpcy53ZWIgIkRlc2NhcmdhIHBhcGVsZXRhcyBhbsOzbmltYXMgeSBhY3RhIiAiSFRUUFMiCiAgICAgICAgdm90b2VwaXMud2ViIC0+IHZvdG9lcGlzLmFwaSAiRW52w61hIHNvbGljaXR1ZGVzIiAiSFRUUFMvSlNPTiAoUkVTVCkiCiAgICAgICAgdm90b2VwaXMuYXBpIC0+IHZvdG9lcGlzLmRiICJMZWUgeSBlc2NyaWJlIiAiU1FML1RDUCIKICAgICAgICB2b3RvZXBpcy5hcGkgLT4gaWRwICJBdXRlbnRpY2EgYSBsb3MgZXN0dWRpYW50ZXMiICJPcGVuSUQgQ29ubmVjdCAvIEhUVFBTIgogICAgICAgIHZvdG9lcGlzLmFwaSAtPiBjb3JyZW8gIkVudsOtYSBjb21wcm9iYW50ZXMiICJTTVRQIgoKICAgICAgICAvLyAtLS0gW0UzXSBSZWxhY2lvbmVzIGRlIG5pdmVsIDMgKGlkw6ludGljYXMgYSBsYXMgZGVwZW5kZW5jaWFzIGRlIHBhcXVldGVzLnB1bWwpIC0tLQogICAgICAgIHZvdG9lcGlzLndlYiAtPiB2b3RvZXBpcy5hcGkuYXV0ZW50aWNhY2lvbiAiSW5pY2lhIHNlc2nDs24iICJIVFRQUy9KU09OIgogICAgICAgIHZvdG9lcGlzLndlYiAtPiB2b3RvZXBpcy5hcGkucGFkcm9uICJDYXJnYSB5IGNvbnN1bHRhIGVsIHBhZHLDs24iICJIVFRQUy9KU09OIgogICAgICAgIHZvdG9lcGlzLndlYiAtPiB2b3RvZXBpcy5hcGkudm90YWNpb24gIkVtaXRlIGVsIHZvdG8iICJIVFRQUy9KU09OIgogICAgICAgIHZvdG9lcGlzLndlYiAtPiB2b3RvZXBpcy5hcGkuZXNjcnV0aW5pbyAiU29saWNpdGEgZWwgZXNjcnV0aW5pbyB5IGxvcyByZXN1bHRhZG9zIiAiSFRUUFMvSlNPTiIKICAgICAgICB2b3RvZXBpcy53ZWIgLT4gdm90b2VwaXMuYXBpLmF1ZGl0b3JpYSAiRGVzY2FyZ2EgZWwgYWN0YSB5IGxhcyBwYXBlbGV0YXMgYW7Ds25pbWFzIiAiSFRUUFMvSlNPTiIKCiAgICAgICAgdm90b2VwaXMuYXBpLmF1dGVudGljYWNpb24gLT4gdm90b2VwaXMuYXBpLnBhZHJvbiAiVmVyaWZpY2EgcXVlIGVsIGNvcnJlbyBlc3TDqSBoYWJpbGl0YWRvIgogICAgICAgIHZvdG9lcGlzLmFwaS52b3RhY2lvbiAtPiB2b3RvZXBpcy5hcGkucGFkcm9uICJWZXJpZmljYSB5IHJlZ2lzdHJhIGxhIHBhcnRpY2lwYWNpw7NuIgogICAgICAgIHZvdG9lcGlzLmFwaS52b3RhY2lvbiAtPiB2b3RvZXBpcy5hcGkuY29tcGFydGlkbyAiUmVnaXN0cmEgZXZlbnRvcyAocHVlcnRvIFJlZ2lzdHJvQXVkaXRvcmlhKSIKICAgICAgICB2b3RvZXBpcy5hcGkuZXNjcnV0aW5pbyAtPiB2b3RvZXBpcy5hcGkudm90YWNpb24gIkxlZSBsYXMgcGFwZWxldGFzIgogICAgICAgIHZvdG9lcGlzLmFwaS5lc2NydXRpbmlvIC0+IHZvdG9lcGlzLmFwaS5jb21wYXJ0aWRvICJSZWdpc3RyYSBldmVudG9zIChwdWVydG8gUmVnaXN0cm9BdWRpdG9yaWEpIgogICAgICAgIHZvdG9lcGlzLmFwaS5hdWRpdG9yaWEgLT4gdm90b2VwaXMuYXBpLmVzY3J1dGluaW8gIkxlZSByZXN1bHRhZG9zIHkgaGFzaCBkZWwgYWN0YSIKICAgICAgICB2b3RvZXBpcy5hcGkuYXVkaXRvcmlhIC0+IHZvdG9lcGlzLmFwaS5jb21wYXJ0aWRvICJJbXBsZW1lbnRhIGVsIHB1ZXJ0byBSZWdpc3Ryb0F1ZGl0b3JpYSIKCiAgICAgICAgdm90b2VwaXMuYXBpLmF1dGVudGljYWNpb24gLT4gaWRwICJBdXRlbnRpY2EgYWwgZXN0dWRpYW50ZSIgIk9wZW5JRCBDb25uZWN0IC8gSFRUUFMiCiAgICAgICAgdm90b2VwaXMuYXBpLnZvdGFjaW9uIC0+IGNvcnJlbyAiRW52w61hIGVsIGNvbXByb2JhbnRlIChvcGNpb25hbCkiICJTTVRQIgoKICAgICAgICB2b3RvZXBpcy5hcGkucGFkcm9uIC0+IHZvdG9lcGlzLmRiICJMZWUgeSBlc2NyaWJlIChlc3F1ZW1hIHBhZHJvbikiICJTUUwiCiAgICAgICAgdm90b2VwaXMuYXBpLnZvdGFjaW9uIC0+IHZvdG9lcGlzLmRiICJHdWFyZGEgcGFwZWxldGFzIGFuw7NuaW1hcyAoZXNxdWVtYSB1cm5hKSIgIlNRTCIKICAgICAgICB2b3RvZXBpcy5hcGkuZXNjcnV0aW5pbyAtPiB2b3RvZXBpcy5kYiAiR3VhcmRhIHJlc3VsdGFkb3MgeSBhY3RhIiAiU1FMIgogICAgICAgIHZvdG9lcGlzLmFwaS5hdWRpdG9yaWEgLT4gdm90b2VwaXMuZGIgIkxlZSB5IGVzY3JpYmUgKGVzcXVlbWEgYXVkaXRvcmlhKSIgIlNRTCIKCiAgICAgICAgLy8gPT09PT0gW0U1XSBkZXBsb3ltZW50RW52aXJvbm1lbnQgIlByb2R1Y2Npw7NuIiDihpIgc2UgYWdyZWdhcsOhIGVuIGVsIHNpZ3VpZW50ZSBlbnRyZWdhYmxlID09PT09CiAgICB9CgogICAgdmlld3MgewoKICAgICAgICAvLyA9PT09PSBbRTFdIE5pdmVsIDEgPT09PT0KICAgICAgICBzeXN0ZW1Db250ZXh0IHZvdG9lcGlzICJDb250ZXh0byIgIk5pdmVsIDE6IFZvdG9FUElTIHkgc3UgZW50b3Juby4iIHsKICAgICAgICAgICAgaW5jbHVkZSAqCiAgICAgICAgICAgIGF1dG9sYXlvdXQgbHIKICAgICAgICB9CgogICAgICAgIC8vID09PT09IFtFMl0gTml2ZWwgMiA9PT09PQogICAgICAgIGNvbnRhaW5lciB2b3RvZXBpcyAiQ29udGVuZWRvcmVzIiAiTml2ZWwgMjogY29udGVuZWRvcmVzIGRlIFZvdG9FUElTLiIgewogICAgICAgICAgICBpbmNsdWRlICoKICAgICAgICAgICAgYXV0b2xheW91dCBscgogICAgICAgIH0KCiAgICAgICAgLy8gPT09PT0gW0UzXSBOaXZlbCAzID09PT09CiAgICAgICAgY29tcG9uZW50IHZvdG9lcGlzLmFwaSAiQ29tcG9uZW50ZXMiICJOaXZlbCAzOiBtw7NkdWxvcyBkZSBsYSBBUEkuIiB7CiAgICAgICAgICAgIGluY2x1ZGUgKgogICAgICAgICAgICBhdXRvbGF5b3V0IGxyCiAgICAgICAgfQoKICAgICAgICAvLyA9PT09PSBbRTRdIFZpc3RhIGRpbsOhbWljYTogZW1pdGlyIHVuIHZvdG8gc2VjcmV0byAoTGFiIDA1OiBzZWN1ZW5jaWEtZW1pdGlyLXZvdG8ucHVtbCkgPT09PT0KICAgICAgICBkeW5hbWljIHZvdG9lcGlzLmFwaSAiRW1pdGlyVm90byIgIkRpbsOhbWljbzogdW4gZXN0dWRpYW50ZSBlbWl0ZSBzdSB2b3RvIHNlY3JldG8uIiB7CiAgICAgICAgICAgIHZvdG9lcGlzLndlYiAtPiB2b3RvZXBpcy5hcGkudm90YWNpb24gIkVudsOtYSBlbCB2b3RvOiBQT1NUIC9lbGVjY2lvbmVzL3tpZH0vdm90byIKICAgICAgICAgICAgdm90b2VwaXMuYXBpLnZvdGFjaW9uIC0+IHZvdG9lcGlzLmFwaS5wYWRyb24gIlZlcmlmaWNhIHkgcmVnaXN0cmEgbGEgcGFydGljaXBhY2nDs24iCiAgICAgICAgICAgIHZvdG9lcGlzLmFwaS5wYWRyb24gLT4gdm90b2VwaXMuZGIgIkd1YXJkYSBsYSBwYXJ0aWNpcGFjacOzbiIKICAgICAgICAgICAgdm90b2VwaXMuYXBpLnZvdGFjaW9uIC0+IHZvdG9lcGlzLmRiICJHdWFyZGEgbGEgcGFwZWxldGEgYW7Ds25pbWEiCiAgICAgICAgICAgIHZvdG9lcGlzLmFwaS52b3RhY2lvbiAtPiB2b3RvZXBpcy5hcGkuY29tcGFydGlkbyAiUmVnaXN0cmEgZWwgZXZlbnRvIFZPVE9fRU1JVElETyIKICAgICAgICAgICAgdm90b2VwaXMuYXBpLnZvdGFjaW9uIC0+IGNvcnJlbyAiRW52w61hIGVsIGNvbXByb2JhbnRlIChvcGNpb25hbCkiCiAgICAgICAgICAgIGF1dG9sYXlvdXQgbHIKICAgICAgICB9CgogICAgICAgIHN0eWxlcyB7CiAgICAgICAgICAgIGVsZW1lbnQgIlBlcnNvbiIgewogICAgICAgICAgICAgICAgc2hhcGUgcGVyc29uCiAgICAgICAgICAgICAgICBiYWNrZ3JvdW5kICMwODQyN0IKICAgICAgICAgICAgICAgIGNvbG9yICNmZmZmZmYKICAgICAgICAgICAgfQogICAgICAgICAgICBlbGVtZW50ICJTb2Z0d2FyZSBTeXN0ZW0iIHsKICAgICAgICAgICAgICAgIGJhY2tncm91bmQgIzExNjhCRAogICAgICAgICAgICAgICAgY29sb3IgI2ZmZmZmZgogICAgICAgICAgICB9CiAgICAgICAgICAgIGVsZW1lbnQgIkV4dGVybm8iIHsKICAgICAgICAgICAgICAgIGJhY2tncm91bmQgIzk5OTk5OQogICAgICAgICAgICB9CiAgICAgICAgICAgIGVsZW1lbnQgIkNvbnRhaW5lciIgewogICAgICAgICAgICAgICAgYmFja2dyb3VuZCAjNDM4REQ1CiAgICAgICAgICAgICAgICBjb2xvciAjZmZmZmZmCiAgICAgICAgICAgIH0KICAgICAgICAgICAgZWxlbWVudCAiQ29tcG9uZW50IiB7CiAgICAgICAgICAgICAgICBiYWNrZ3JvdW5kICM4NUJCRjAKICAgICAgICAgICAgICAgIGNvbG9yICMwMDAwMDAKICAgICAgICAgICAgfQogICAgICAgICAgICBlbGVtZW50ICJEYXRhYmFzZSIgewogICAgICAgICAgICAgICAgc2hhcGUgY3lsaW5kZXIKICAgICAgICAgICAgfQogICAgICAgICAgICBlbGVtZW50ICJXZWIgQnJvd3NlciIgewogICAgICAgICAgICAgICAgc2hhcGUgV2ViQnJvd3NlcgogICAgICAgICAgICB9CiAgICAgICAgfQogICAgfQp9",
+    "structurizr.inspection.info" : "0",
+    "structurizr.inspection.ignore" : "0",
+    "structurizr.inspection.warning" : "0"
+  },
+  "views" : {
+    "componentViews" : [ {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "containerId" : "6",
+      "description" : "Nivel 3: módulos de la API.",
+      "elements" : [ {
+        "id" : "5",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "7",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "8",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "9",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "10",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "11",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "12",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "13",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "14",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "15",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "externalContainerBoundariesVisible" : false,
+      "key" : "Componentes",
+      "name" : "Component View: VotoEPIS - API VotoEPIS",
+      "order" : 3,
+      "relationships" : [ {
+        "id" : "28"
+      }, {
+        "id" : "29"
+      }, {
+        "id" : "30"
+      }, {
+        "id" : "31"
+      }, {
+        "id" : "32"
+      }, {
+        "id" : "33"
+      }, {
+        "id" : "34"
+      }, {
+        "id" : "35"
+      }, {
+        "id" : "36"
+      }, {
+        "id" : "37"
+      }, {
+        "id" : "38"
+      }, {
+        "id" : "39"
+      }, {
+        "id" : "40"
+      }, {
+        "id" : "41"
+      }, {
+        "id" : "42"
+      }, {
+        "id" : "43"
+      }, {
+        "id" : "44"
+      }, {
+        "id" : "45"
+      } ]
+    } ],
+    "configuration" : {
+      "styles" : {
+        "elements" : [ {
+          "background" : "#85bbf0",
+          "color" : "#000000",
+          "tag" : "Component"
+        }, {
+          "background" : "#438dd5",
+          "color" : "#ffffff",
+          "tag" : "Container"
+        }, {
+          "shape" : "Cylinder",
+          "tag" : "Database"
+        }, {
+          "background" : "#999999",
+          "tag" : "Externo"
+        }, {
+          "background" : "#08427b",
+          "color" : "#ffffff",
+          "shape" : "Person",
+          "tag" : "Person"
+        }, {
+          "background" : "#1168bd",
+          "color" : "#ffffff",
+          "tag" : "Software System"
+        }, {
+          "shape" : "WebBrowser",
+          "tag" : "Web Browser"
+        } ]
+      },
+      "terminology" : { }
+    },
+    "containerViews" : [ {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "description" : "Nivel 2: contenedores de VotoEPIS.",
+      "elements" : [ {
+        "id" : "1",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "2",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "3",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "5",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "6",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "13",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "14",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "15",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "externalSoftwareSystemBoundariesVisible" : false,
+      "key" : "Contenedores",
+      "name" : "Container View: VotoEPIS",
+      "order" : 2,
+      "relationships" : [ {
+        "id" : "21"
+      }, {
+        "id" : "22"
+      }, {
+        "id" : "23"
+      }, {
+        "id" : "24"
+      }, {
+        "id" : "25"
+      }, {
+        "id" : "26"
+      }, {
+        "id" : "27"
+      } ],
+      "softwareSystemId" : "4"
+    } ],
+    "dynamicViews" : [ {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "description" : "Dinámico: un estudiante emite su voto secreto.",
+      "elementId" : "6",
+      "elements" : [ {
+        "id" : "5",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "8",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "9",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "12",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "13",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "15",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "externalBoundariesVisible" : false,
+      "key" : "EmitirVoto",
+      "name" : "Dynamic View: VotoEPIS - API VotoEPIS",
+      "order" : 4,
+      "relationships" : [ {
+        "description" : "Envía el voto: POST /elecciones/{id}/voto",
+        "id" : "30",
+        "order" : "1",
+        "response" : false
+      }, {
+        "description" : "Verifica y registra la participación",
+        "id" : "34",
+        "order" : "2",
+        "response" : false
+      }, {
+        "description" : "Guarda la participación",
+        "id" : "42",
+        "order" : "3",
+        "response" : false
+      }, {
+        "description" : "Guarda la papeleta anónima",
+        "id" : "43",
+        "order" : "4",
+        "response" : false
+      }, {
+        "description" : "Registra el evento VOTO_EMITIDO",
+        "id" : "35",
+        "order" : "5",
+        "response" : false
+      }, {
+        "description" : "Envía el comprobante (opcional)",
+        "id" : "41",
+        "order" : "6",
+        "response" : false
+      } ]
+    } ],
+    "systemContextViews" : [ {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "description" : "Nivel 1: VotoEPIS y su entorno.",
+      "elements" : [ {
+        "id" : "1",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "2",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "3",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "4",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "14",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "15",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "enterpriseBoundaryVisible" : true,
+      "key" : "Contexto",
+      "name" : "System Context View: VotoEPIS",
+      "order" : 1,
+      "relationships" : [ {
+        "id" : "16"
+      }, {
+        "id" : "17"
+      }, {
+        "id" : "18"
+      }, {
+        "id" : "19"
+      }, {
+        "id" : "20"
+      } ],
+      "softwareSystemId" : "4"
+    } ]
+  }
+}
