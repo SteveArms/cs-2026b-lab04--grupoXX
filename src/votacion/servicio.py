@@ -2,7 +2,7 @@
 
 E2: la autenticación por medio usa Strategy + Adapter + Factory (ver autenticacion.py).
 E3: el ciclo de vida de la elección usa State (ver estados.py).
-Pendiente de refactor: auditoría/comprobante a mano y reintentos (E4: Observer/Decorator).
+E4: la auditoría y el comprobante usan Observer (eventos.py); los reintentos, un Decorator (autenticacion.py).
 Nota: este módulo es independiente de votacion/dominio.py (esqueleto del Lab 05).
 """
 from __future__ import annotations
@@ -13,6 +13,8 @@ from uuid import UUID
 
 from votacion.autenticacion import fabrica_por_defecto
 from votacion.estados import Eleccion, Opcion  # noqa: F401  (re-exportadas: API pública del módulo)
+from votacion.eventos import (AuditoriaMemoria, ContadorParticipacion, NotificadorComprobante,
+                              PublicadorEventos)
 from votacion.externos import CorreoSDK, OtpComiteSDK, ProveedorIdentidadSDK
 
 
@@ -35,44 +37,48 @@ class ServicioVotacion:
         self.otp = otp or OtpComiteSDK()
         self.correo = correo or CorreoSDK()
         self.fabrica = fabrica or fabrica_por_defecto(self.idp, self.otp)
-        self.eventos: list[str] = []
+        self.auditoria = AuditoriaMemoria()
+        self.contador = ContadorParticipacion()
+        self.publicador = PublicadorEventos()                # Observer: se pueden suscribir más interesados
+        self.publicador.suscribir("voto_emitido", self.auditoria)
+        self.publicador.suscribir("voto_rechazado", self.auditoria)
+        self.publicador.suscribir("voto_emitido", self.contador)
+        self.publicador.suscribir("voto_emitido", NotificadorComprobante(self.correo))
         self.participaciones: set[tuple[str, UUID]] = set()
         self.urna: list[Papeleta] = []
 
+    @property
+    def eventos(self) -> list[str]:
+        return self.auditoria.eventos
+
     # ------------------------------------------------------------------ flujo crítico
     def emitir_voto(self, votante, eleccion, opcion_id, medio, credencial, enviar_correo=False):
-        autenticador = self.fabrica.crear(medio)            # Factory -> Strategy (valida el medio)
-        resultado = None
-        for intento in range(3):                            # (E4 moverá esto a un Decorator)
-            try:
-                resultado = autenticador.autenticar(votante.correo, credencial)
-                break
-            except TimeoutError:
-                continue
-        if resultado is None or not resultado.autenticado or resultado.correo != votante.correo:
-            self.eventos.append(f"AUTENTICACION_FALLIDA:{eleccion.id}")
-            raise PermissionError("Autenticación fallida")
-
+        autenticador = self.fabrica.crear(medio)            # Factory -> Strategy (+ Decorator de reintentos)
+        resultado = autenticador.autenticar(votante.correo, credencial)
+        if not resultado.autenticado or resultado.correo != votante.correo:
+            self._rechazar("AUTENTICACION_FALLIDA", eleccion, PermissionError("Autenticación fallida"))
         if not eleccion.admite_votos:
-            self.eventos.append(f"VOTO_FUERA_DE_VENTANA:{eleccion.id}")
-            raise ValueError(f"La elección no admite votos: está {eleccion.estado}")
+            self._rechazar("VOTO_FUERA_DE_VENTANA", eleccion,
+                           ValueError(f"La elección no admite votos: está {eleccion.estado}"))
         if not votante.habilitado:
-            self.eventos.append(f"VOTANTE_NO_HABILITADO:{eleccion.id}")
-            raise PermissionError("El votante no está habilitado")
+            self._rechazar("VOTANTE_NO_HABILITADO", eleccion,
+                           PermissionError("El votante no está habilitado"))
         if (votante.correo, eleccion.id) in self.participaciones:
-            self.eventos.append(f"INTENTO_VOTO_DUPLICADO:{eleccion.id}")
-            raise ValueError("Ya emitiste tu voto")
+            self._rechazar("INTENTO_VOTO_DUPLICADO", eleccion, ValueError("Ya emitiste tu voto"))
         if opcion_id not in [o.id for o in eleccion.opciones]:
             raise ValueError("Opción inválida")
 
         codigo = secrets.token_hex(8)
         self.participaciones.add((votante.correo, eleccion.id))
         self.urna.append(Papeleta(eleccion.id, opcion_id))
-        self.eventos.append(f"VOTO_EMITIDO:{eleccion.id}")
-        if enviar_correo:
-            self.correo.enviar(votante.correo, "Comprobante de participación",
-                               f"Tu código de comprobante es {codigo}")
+        self.publicador.publicar("voto_emitido", {                   # NUNCA incluye la opción (ADR-002)
+            "eleccion_id": eleccion.id, "correo": votante.correo,
+            "codigo": codigo, "enviar_correo": enviar_correo})
         return codigo
+
+    def _rechazar(self, motivo, eleccion, error):
+        self.publicador.publicar("voto_rechazado", {"motivo": motivo, "eleccion_id": eleccion.id})
+        raise error
 
     # ------------------------------------------------------------------ ciclo de vida (State)
     def abrir(self, eleccion):

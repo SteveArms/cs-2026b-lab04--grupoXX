@@ -135,3 +135,104 @@ def test_el_servicio_ya_no_tiene_condicionales_sobre_el_ciclo_de_vida():
     fuente = inspect.getsource(srv.ServicioVotacion)
     for nombre in ("CONFIGURADA", "CERRADA", "ESCRUTADA", "PUBLICADA"):
         assert f'"{nombre}"' not in fuente
+
+
+# ------------------------------------------------------------------ E4: Decorator
+from votacion.autenticacion import ConReintentos, OidcAdapter as _Oidc, ResultadoAutenticacion as _Res
+from votacion.eventos import PublicadorEventos, Suscriptor
+from votacion.externos import CorreoSDK
+
+
+def test_decorator_reintenta_solo_ante_timeouts():
+    sdk = ProveedorIdentidadSDK(tokens={"t": ANA}, fallas=2)
+    deco = ConReintentos(_Oidc(sdk), intentos=3)
+    assert deco.autenticar(ANA, "t") == _Res(True, ANA)
+    assert sdk.llamadas == 3
+
+
+def test_decorator_no_reintenta_un_rechazo():
+    sdk = ProveedorIdentidadSDK(tokens={"t": ANA})
+    deco = ConReintentos(_Oidc(sdk), intentos=3)
+    assert deco.autenticar(ANA, "malo").autenticado is False
+    assert sdk.llamadas == 1
+
+
+def test_decorator_se_rinde_tras_agotar_los_intentos():
+    sdk = ProveedorIdentidadSDK(tokens={"t": ANA}, fallas=10)
+    assert ConReintentos(_Oidc(sdk), intentos=3).autenticar(ANA, "t").autenticado is False
+    assert sdk.llamadas == 3
+
+
+def test_la_fabrica_entrega_las_estrategias_ya_decoradas():
+    fabrica = FabricaAutenticadores()
+    fabrica.registrar("OIDC", lambda: _Oidc(ProveedorIdentidadSDK()))
+    assert isinstance(fabrica.crear("OIDC"), ConReintentos)
+
+
+def test_el_servicio_ya_no_tiene_bucles_de_reintento():
+    fuente = inspect.getsource(srv.ServicioVotacion)
+    assert "TimeoutError" not in fuente and "range(3)" not in fuente
+
+
+# ------------------------------------------------------------------ E4: Observer
+class _Espia(Suscriptor):
+    def __init__(self):
+        self.recibidos = []
+
+    def actualizar(self, evento, datos):
+        self.recibidos.append((evento, datos))
+
+
+def _servicio_con_voto_listo():
+    s = srv.ServicioVotacion(idp=ProveedorIdentidadSDK(tokens={"t": ANA}))
+    e = srv.Eleccion("Delegados", [srv.Opcion("A"), srv.Opcion("B")], fin=FIN)
+    s.abrir(e)
+    return s, e
+
+
+def test_observer_nuevo_suscriptor_sin_tocar_el_servicio():
+    s, e = _servicio_con_voto_listo()
+    espia = _Espia()
+    s.publicador.suscribir("voto_emitido", espia)      # interesado NUEVO: el servicio no cambia
+    s.emitir_voto(srv.Votante(ANA), e, e.opciones[0].id, "OIDC", "t")
+    assert [ev for ev, _ in espia.recibidos] == ["voto_emitido"]
+
+
+def test_observer_publicador_solo_notifica_a_los_suscritos_al_evento():
+    pub = PublicadorEventos()
+    uno, dos = _Espia(), _Espia()
+    pub.suscribir("a", uno)
+    pub.suscribir("b", dos)
+    pub.publicar("a", {"x": 1})
+    assert len(uno.recibidos) == 1 and dos.recibidos == []
+
+
+def test_observer_los_eventos_no_filtran_la_opcion_ni_el_correo_a_la_auditoria():
+    s, e = _servicio_con_voto_listo()
+    s.emitir_voto(srv.Votante(ANA), e, e.opciones[1].id, "OIDC", "t")
+    assert s.eventos == [f"VOTO_EMITIDO:{e.id}"]
+    assert ANA not in " ".join(s.eventos) and str(e.opciones[1].id) not in " ".join(s.eventos)
+
+
+def test_observer_el_contador_de_participacion_cuenta_sin_datos_personales():
+    s, e = _servicio_con_voto_listo()
+    s.emitir_voto(srv.Votante(ANA), e, e.opciones[0].id, "OIDC", "t")
+    assert s.contador.por_eleccion == {e.id: 1}
+
+
+def test_observer_el_comprobante_se_envia_por_suscripcion():
+    correo = CorreoSDK()
+    s = srv.ServicioVotacion(idp=ProveedorIdentidadSDK(tokens={"t": ANA}), correo=correo)
+    e = srv.Eleccion("Delegados", [srv.Opcion("A"), srv.Opcion("B")], fin=FIN)
+    s.abrir(e)
+    s.emitir_voto(srv.Votante(ANA), e, e.opciones[0].id, "OIDC", "t", enviar_correo=True)
+    assert len(correo.bandeja) == 1 and correo.bandeja[0]["destino"] == ANA
+
+
+def test_decorator_no_oculta_errores_que_no_son_timeouts():
+    class _Roto(AutenticadorVotante):
+        def autenticar(self, correo_esperado, credencial):
+            raise RuntimeError("fallo inesperado")
+
+    with pytest.raises(RuntimeError):
+        ConReintentos(_Roto(), intentos=3).autenticar(ANA, "t")

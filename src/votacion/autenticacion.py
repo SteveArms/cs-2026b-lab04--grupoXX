@@ -1,8 +1,9 @@
-"""Autenticación del votante: Strategy + Adapter + Factory (E2).
+"""Autenticación del votante: Strategy + Adapter + Factory (E2) + Decorator de reintentos (E4).
 
 * Strategy : `AutenticadorVotante` es la interfaz común; cada medio es una estrategia intercambiable.
 * Adapter  : `OidcAdapter` y `OtpAdapter` traducen cada SDK externo (interfaces distintas) a esa interfaz.
 * Factory  : `FabricaAutenticadores` (registro) crea la estrategia por nombre. Agregar un medio = registrarlo.
+* Decorator: `ConReintentos` agrega reintentos ante TimeoutError sin modificar los adaptadores ni el servicio.
 """
 from __future__ import annotations
 
@@ -45,6 +46,23 @@ class OtpAdapter(AutenticadorVotante):
         return ResultadoAutenticacion(codigo_http == 200, correo)
 
 
+# ---------- DECORATOR: agrega reintentos sin modificar los adaptadores ----------
+class ConReintentos(AutenticadorVotante):
+    """Reintenta SOLO ante TimeoutError. Un rechazo (credencial inválida) NO se reintenta."""
+
+    def __init__(self, interno: AutenticadorVotante, intentos: int = 3) -> None:
+        self._interno = interno
+        self._intentos = intentos
+
+    def autenticar(self, correo_esperado, credencial):
+        for _ in range(self._intentos):
+            try:
+                return self._interno.autenticar(correo_esperado, credencial)
+            except TimeoutError:
+                continue
+        return ResultadoAutenticacion(False)
+
+
 # ---------- FACTORY (registro): crea la estrategia adecuada por nombre ----------
 class FabricaAutenticadores:
     def __init__(self) -> None:
@@ -56,7 +74,7 @@ class FabricaAutenticadores:
     def crear(self, medio: str) -> AutenticadorVotante:
         if medio not in self._creadores:
             raise ValueError(f"Medio de autenticación no soportado: {medio}")
-        return self._creadores[medio]()
+        return ConReintentos(self._creadores[medio]())
 
 
 def fabrica_por_defecto(idp: ProveedorIdentidadSDK, otp: OtpComiteSDK) -> FabricaAutenticadores:
