@@ -1,24 +1,19 @@
 """Versión REFACTORIZADA del flujo "emitir un voto secreto" (Lab 07).
 
 E2: la autenticación por medio usa Strategy + Adapter + Factory (ver autenticacion.py).
-Pendiente de refactor: ciclo de vida (E3: State) y auditoría/comprobante a mano (E4: Observer/Decorator).
+E3: el ciclo de vida de la elección usa State (ver estados.py).
+Pendiente de refactor: auditoría/comprobante a mano y reintentos (E4: Observer/Decorator).
 Nota: este módulo es independiente de votacion/dominio.py (esqueleto del Lab 05).
 """
 from __future__ import annotations
 
 import secrets
-from dataclasses import dataclass, field
-from datetime import datetime
-from uuid import UUID, uuid4
+from dataclasses import dataclass
+from uuid import UUID
 
 from votacion.autenticacion import fabrica_por_defecto
+from votacion.estados import Eleccion, Opcion  # noqa: F401  (re-exportadas: API pública del módulo)
 from votacion.externos import CorreoSDK, OtpComiteSDK, ProveedorIdentidadSDK
-
-
-@dataclass
-class Opcion:
-    etiqueta: str
-    id: UUID = field(default_factory=uuid4)
 
 
 @dataclass
@@ -32,16 +27,6 @@ class Papeleta:
     # ADR-002: la papeleta NO referencia al votante.
     eleccion_id: UUID
     opcion_id: UUID
-
-
-@dataclass
-class Eleccion:
-    nombre: str
-    opciones: list[Opcion] = field(default_factory=list)
-    fin: datetime | None = None
-    estado: str = "CONFIGURADA"
-    acta_firmada: bool = False
-    id: UUID = field(default_factory=uuid4)
 
 
 class ServicioVotacion:
@@ -68,14 +53,9 @@ class ServicioVotacion:
             self.eventos.append(f"AUTENTICACION_FALLIDA:{eleccion.id}")
             raise PermissionError("Autenticación fallida")
 
-        if eleccion.estado != "ABIERTA":
+        if not eleccion.admite_votos:
             self.eventos.append(f"VOTO_FUERA_DE_VENTANA:{eleccion.id}")
-            if eleccion.estado == "CONFIGURADA":
-                raise ValueError("La elección aún no abre")
-            elif eleccion.estado == "CERRADA":
-                raise ValueError("La elección ya cerró")
-            else:
-                raise ValueError("La elección no está abierta")
+            raise ValueError(f"La elección no admite votos: está {eleccion.estado}")
         if not votante.habilitado:
             self.eventos.append(f"VOTANTE_NO_HABILITADO:{eleccion.id}")
             raise PermissionError("El votante no está habilitado")
@@ -94,50 +74,23 @@ class ServicioVotacion:
                                f"Tu código de comprobante es {codigo}")
         return codigo
 
-    # ------------------------------------------------------------------ ciclo de vida (E3 lo refactoriza)
+    # ------------------------------------------------------------------ ciclo de vida (State)
     def abrir(self, eleccion):
-        if eleccion.estado == "CONFIGURADA":
-            if len(eleccion.opciones) < 2:
-                raise ValueError("Se requieren al menos 2 opciones")
-            eleccion.estado = "ABIERTA"
-        elif eleccion.estado == "ABIERTA":
-            raise ValueError("La elección ya está abierta")
-        else:
-            raise ValueError(f"No se puede abrir una elección {eleccion.estado}")
+        eleccion.abrir()
 
     def cerrar(self, eleccion, ahora):
-        if eleccion.estado == "ABIERTA":
-            if eleccion.fin is not None and ahora < eleccion.fin:
-                raise ValueError("Aún no culmina la ventana de votación")
-            eleccion.estado = "CERRADA"
-        elif eleccion.estado == "CONFIGURADA":
-            raise ValueError("La elección aún no abre")
-        else:
-            raise ValueError(f"No se puede cerrar una elección {eleccion.estado}")
+        eleccion.cerrar(ahora)
 
     def escrutar(self, eleccion):
-        if eleccion.estado == "CERRADA":
-            n_papeletas = sum(1 for p in self.urna if p.eleccion_id == eleccion.id)
-            n_participaciones = sum(1 for (_, e) in self.participaciones if e == eleccion.id)
-            if n_papeletas != n_participaciones:
-                raise ValueError("Urna no íntegra: papeletas distintas de participaciones")
-            eleccion.estado = "ESCRUTADA"
-        else:
-            raise ValueError(f"No se puede escrutar una elección {eleccion.estado}")
+        n_papeletas = sum(1 for p in self.urna if p.eleccion_id == eleccion.id)
+        n_participaciones = sum(1 for (_, e) in self.participaciones if e == eleccion.id)
+        eleccion.escrutar(n_papeletas, n_participaciones)
 
     def firmar_acta(self, eleccion):
-        if eleccion.estado == "ESCRUTADA":
-            eleccion.acta_firmada = True
-        else:
-            raise ValueError(f"No se puede firmar el acta de una elección {eleccion.estado}")
+        eleccion.firmar_acta()
 
     def publicar(self, eleccion):
-        if eleccion.estado == "ESCRUTADA":
-            if not eleccion.acta_firmada:
-                raise ValueError("Se requiere el acta firmada para publicar")
-            eleccion.estado = "PUBLICADA"
-        else:
-            raise ValueError(f"No se puede publicar una elección {eleccion.estado}")
+        eleccion.publicar()
 
     # ------------------------------------------------------------------ conteo (solo lectura)
     def conteo(self, eleccion) -> dict[str, int]:
