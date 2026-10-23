@@ -1,0 +1,35 @@
+$ radon cc -s -a src/votacion/antes/servicio.py
+src/votacion/antes/servicio.py
+    M 55:4 ServicioVotacion.emitir_voto - C (19)
+    C 45:0 ServicioVotacion - B (7)
+    M 128:4 ServicioVotacion.escrutar - B (7)
+    M 153:4 ServicioVotacion.conteo - B (6)
+    M 118:4 ServicioVotacion.cerrar - A (5)
+    M 46:4 ServicioVotacion.__init__ - A (4)
+    M 108:4 ServicioVotacion.abrir - A (4)
+    M 144:4 ServicioVotacion.publicar - A (3)
+    M 138:4 ServicioVotacion.firmar_acta - A (2)
+    C 17:0 Opcion - A (1)
+    C 23:0 Votante - A (1)
+    C 29:0 Papeleta - A (1)
+    C 36:0 Eleccion - A (1)
+
+13 blocks (classes, functions, methods) analyzed.
+Average complexity: A (4.6923076923076925)
+
+$ radon raw src/votacion/antes/servicio.py
+src/votacion/antes/servicio.py
+    LOC: 160
+    LLOC: 146
+    SLOC: 130
+    Comments: 4
+    Single comments: 4
+    Multi: 4
+    Blank: 22
+    - Comment Stats
+        (C % L): 2%
+        (C % S): 3%
+        (C + M % L): 5%
+
+$ radon mi -s src/votacion/antes/servicio.py
+src/votacion/antes/servicio.py - A (40.64)
