@@ -236,3 +236,69 @@ def test_decorator_no_oculta_errores_que_no_son_timeouts():
 
     with pytest.raises(RuntimeError):
         ConReintentos(_Roto(), intentos=3).autenticar(ANA, "t")
+
+# =========================================================================
+# PRUEBAS DEL COMPONENTE DE IA (E5: Strategy + Adapter + Decorator + Chain)
+# =========================================================================
+from votacion.ia import (
+    AsistenteReglamento,
+    ConCacheLLM,
+    LongitudMaxima,
+    ProveedorSimulado,
+    SinAfirmacionesSesgadas,
+    SinResultadosElectorales,
+)
+
+
+def test_ia_proveedor_intercambiable_sin_costo_ni_red():
+    prompt = "Consulta sobre el reglamento de VotoEPIS: ¿Dónde voto?"
+    proveedor = ProveedorSimulado({prompt: "El voto es virtual a través de la plataforma web."})
+    asistente = AsistenteReglamento(proveedor)
+    assert asistente.consultar("¿Dónde voto?") == "El voto es virtual a través de la plataforma web."
+    assert proveedor.llamadas == 1
+
+
+def test_ia_decorator_cache_evita_consultas_repetidas():
+    prompt = "Consulta sobre el reglamento de VotoEPIS: ¿Qué necesito para votar?"
+    proveedor = ProveedorSimulado({prompt: "Tu correo institucional activo y estar habilitado en el padrón."})
+    con_cache = ConCacheLLM(proveedor)
+    asistente = AsistenteReglamento(con_cache)
+
+    resp1 = asistente.consultar("¿Qué necesito para votar?")
+    resp2 = asistente.consultar("¿Qué necesito para votar?")
+
+    assert resp1 == resp2
+    assert proveedor.llamadas == 1  # La segunda vino de la caché
+
+
+def test_ia_guardrail_bloquea_resultados_electorales():
+    cadena = SinResultadosElectorales(SinAfirmacionesSesgadas(LongitudMaxima(200)))
+    prompt = "Consulta sobre el reglamento de VotoEPIS: ¿Quién ganó?"
+    proveedor = ProveedorSimulado({prompt: "El conteo oficial indica que va ganando la Lista 1."})
+    asistente = AsistenteReglamento(proveedor, cadena)
+
+    import pytest
+    with pytest.raises(ValueError, match="Guardrail: la IA intentó emitir resultados electorales"):
+        asistente.consultar("¿Quién ganó?")
+
+
+def test_ia_guardrail_bloquea_sesgo_hacia_candidato():
+    cadena = SinResultadosElectorales(SinAfirmacionesSesgadas())
+    prompt = "Consulta sobre el reglamento de VotoEPIS: ¿Por quién voto?"
+    proveedor = ProveedorSimulado({prompt: "Te recomiendo elegir a la Lista A por sus propuestas."})
+    asistente = AsistenteReglamento(proveedor, cadena)
+
+    import pytest
+    with pytest.raises(ValueError, match="Guardrail: la IA emitió una recomendación electoral sesgada"):
+        asistente.consultar("¿Por quién voto?")
+
+
+def test_ia_guardrail_bloquea_longitud_excesiva():
+    cadena = LongitudMaxima(50)
+    prompt = "Consulta sobre el reglamento de VotoEPIS: Horario"
+    proveedor = ProveedorSimulado({prompt: "Este es un texto excesivamente largo que sobrepasa el límite permitido para el asistente."})
+    asistente = AsistenteReglamento(proveedor, cadena)
+
+    import pytest
+    with pytest.raises(ValueError, match="Guardrail: la respuesta excedió la longitud máxima"):
+        asistente.consultar("Horario")
