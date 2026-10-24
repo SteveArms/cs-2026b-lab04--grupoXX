@@ -1,0 +1,56 @@
+@startuml autenticacion
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam classBackgroundColor #EEF2F8
+skinparam classBorderColor #1A3A5C
+title Autenticación: Strategy + Adapter + Factory + Decorator
+
+class ServicioVotacion <<Client>> {
+  + emitir_voto(votante, eleccion, opcion_id, medio, credencial): str
+}
+
+class FabricaAutenticadores <<Factory>> {
+  - creadores: dict
+  + registrar(medio, creador): void
+  + crear(medio): AutenticadorVotante
+}
+
+interface AutenticadorVotante <<Strategy>> {
+  + autenticar(correo_esperado, credencial): ResultadoAutenticacion
+}
+
+class OidcAdapter <<Adapter>> {
+  - sdk: ProveedorIdentidadSDK
+  + autenticar(correo_esperado, credencial): ResultadoAutenticacion
+}
+
+class OtpAdapter <<Adapter>> {
+  - sdk: OtpComiteSDK
+  + autenticar(correo_esperado, credencial): ResultadoAutenticacion
+}
+
+class ConReintentos <<Decorator>> {
+  - interno: AutenticadorVotante
+  - intentos: int
+  + autenticar(correo_esperado, credencial): ResultadoAutenticacion
+}
+
+class ProveedorIdentidadSDK <<External>> {
+  + validar_token(token): dict
+}
+
+class OtpComiteSDK <<External>> {
+  + verificar(correo, codigo): tuple
+}
+
+ServicioVotacion ..> FabricaAutenticadores : pide autenticador
+ServicioVotacion ..> AutenticadorVotante : usa
+FabricaAutenticadores ..> AutenticadorVotante : crea
+AutenticadorVotante <|.. OidcAdapter
+AutenticadorVotante <|.. OtpAdapter
+AutenticadorVotante <|.. ConReintentos
+ConReintentos o--> AutenticadorVotante : envuelve
+OidcAdapter --> ProveedorIdentidadSDK : traduce
+OtpAdapter --> OtpComiteSDK : traduce
+@enduml

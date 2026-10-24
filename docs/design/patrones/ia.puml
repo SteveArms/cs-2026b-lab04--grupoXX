@@ -1,0 +1,61 @@
+@startuml ia
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam classBackgroundColor #EEF2F8
+skinparam classBorderColor #1A3A5C
+title Asistente Electoral: Strategy + Adapter + Decorator + Chain of Responsibility
+
+class AsistenteReglamento <<Client>> {
+  + consultar(pregunta: str): str
+}
+
+interface ProveedorLLM <<Strategy>> {
+  + completar(prompt: str): str
+}
+
+class OllamaLocalAdapter <<Adapter>> {
+  + completar(prompt: str): str
+}
+
+class ProveedorSimulado <<Strategy>> {
+  + completar(prompt: str): str
+}
+
+class ConCacheLLM <<Decorator>> {
+  - interno: ProveedorLLM
+  - cache: dict
+  + completar(prompt: str): str
+}
+
+abstract class GuardrailElectoral <<Handler>> {
+  - siguiente: GuardrailElectoral
+  + validar(texto: str): str
+  # {abstract} _aplicar(texto: str): str
+}
+
+class SinResultadosElectorales <<ConcreteHandler>> {
+  # _aplicar(texto: str): str
+}
+
+class SinAfirmacionesSesgadas <<ConcreteHandler>> {
+  # _aplicar(texto: str): str
+}
+
+class LongitudMaxima <<ConcreteHandler>> {
+  - max: int
+  # _aplicar(texto: str): str
+}
+
+AsistenteReglamento o--> ProveedorLLM : usa estrategia
+AsistenteReglamento o--> GuardrailElectoral : valida con cadena
+ProveedorLLM <|.. OllamaLocalAdapter
+ProveedorLLM <|.. ProveedorSimulado
+ProveedorLLM <|.. ConCacheLLM
+ConCacheLLM o--> ProveedorLLM : envuelve
+
+GuardrailElectoral <|-- SinResultadosElectorales
+GuardrailElectoral <|-- SinAfirmacionesSesgadas
+GuardrailElectoral <|-- LongitudMaxima
+GuardrailElectoral o--> GuardrailElectoral : siguiente eslabon
+@enduml

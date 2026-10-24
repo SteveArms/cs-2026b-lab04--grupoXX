@@ -12,3 +12,7 @@
 
 ## Anexo: prompts completos
 <pegar aquí el texto exacto de cada prompt usado, uno por entrada>
+
+| 6 | 21/10 | Gemini | Prompt IA 2: Diseñar el componente de IA con Strategy, Decorator y Chain of Responsibility para VotoEPIS | Sugirió usar un segundo LLM como "juez" para evaluar la salida del primero | Rechazado por introducir costo, latencia y no-determinismo; se implementaron guardrails deterministas en cadena (SinResultadosElectorales, SinAfirmacionesSesgadas, LongitudMaxima). | Corregida |
+| 7 | 22/10 | Gemini | Generación de diagramas PlantUML para los patrones aplicados | Diagrama con relaciones de herencia donde correspondía agregación/composición en el decorador | Se corrigió para que `ConCacheLLM` y `ConReintentos` muestren composición envolviendo la interfaz abstracta. | Corregida |
+| 8 | 23/10 | Gemini | Redacción del ADR-005 resumiendo trade-offs arquitectónicos | No detallaba el impacto en líneas de código (SLOC) ni la ganancia en complejidad | Se añadieron las métricas reales de Radon (19 a 3 en CC) y la justificación de los patrones rechazados. | Corregida |
