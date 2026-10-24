@@ -138,3 +138,28 @@ graph LR
 | **Revisión Oficial C4** | [`revision-c4.md`](docs/architecture/c4/revision-c4.md) | — |
 | **Explicación No Técnica** | [`explicacion.md`](docs/architecture/c4/explicacion.md) | — |
 | **Bitácora de IA (Lab 06)** | [`bitacora-ia.md`](docs/architecture/c4/bitacora-ia.md) | — |
+
+---
+
+## Patrones de Diseño (Lab 07)
+
+Refactorización orientada a patrones de diseño GoF en el módulo de Votación, protegiendo el comportamiento con pruebas de caracterización y aislando el componente de IA.
+
+### 1. Resumen de Patrones Aplicados
+
+| Olor detectado | Patrón GoF aplicado | Principio SOLID | Archivo / Implementación |
+|---|---|---|---|
+| `if/elif` por medio de autenticación y acoplamiento a SDKs | **Strategy + Adapter + Factory** | Abierto/Cerrado (O), Inversión de Dependencias (D) | `src/votacion/autenticacion.py` |
+| Reintentos ante fallas de red duplicados en cada medio | **Decorator** (`ConReintentos`) | Responsabilidad Única (S), Abierto/Cerrado (O) | `src/votacion/autenticacion.py` |
+| Condicionales anidados sobre `eleccion.estado` | **State** (`EstadoEleccion`) | Sustitución de Liskov (L), Responsabilidad Única (S) | `src/votacion/estados.py` |
+| Notificaciones y auditoría mezcladas en el servicio | **Observer** (`PublicadorEventos`) | Responsabilidad Única (S), Abierto/Cerrado (O) | `src/votacion/eventos.py` |
+| Componente de IA no determinista con riesgo de alucinación | **Strategy + Decorator + Chain of Resp.** | Segregación de Interfaces (I), Responsabilidad Única (S) | `src/votacion/ia.py` |
+
+### 2. Métricas de Impacto (Radon 6.0.1)
+
+| Métrica | Antes (condicionales) | Después (patrones) | Impacto |
+|---|:---:|:---:|---|
+| Complejidad método `emitir_voto` | **19 (C)** | **3 (A)** | -84 % de rutas ciclomáticas |
+| Complejidad promedio del módulo | **4.69 (A)** | **1.72 (A)** | Mayor legibilidad y testabilidad |
+| Líneas de código (SLOC) | 130 | 315 | +142 % por indirección y contratos |
+| Pruebas automatizadas en verde | 19 pruebas | 88 pruebas | Cobertura total de caracterización y patrones |
