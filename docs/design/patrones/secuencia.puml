@@ -1,0 +1,40 @@
+@startuml secuencia
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam sequenceMessageAlign center
+autonumber
+title emitir_voto() después del refactor: los patrones colaborando
+
+actor "Votante" as V
+participant "ServicioVotacion" as S
+participant "FabricaAutenticadores\n<<Factory>>" as F
+participant "ConReintentos\n<<Decorator>>" as D
+participant "OidcAdapter\n<<Adapter>>" as A
+participant "Eleccion\n+ _estado <<State>>" as E
+participant "PublicadorEventos\n<<Observer>>" as P
+participant "AuditoriaMemoria" as AUD
+participant "NotificadorComprobante" as NOT
+
+V -> S : emitir_voto(votante, eleccion, opcion, medio, credencial)
+S -> F : crear("OIDC")
+F --> S : ConReintentos(OidcAdapter)
+S -> D : autenticar(correo, credencial)
+loop hasta 3 intentos si ocurre TimeoutError
+  D -> A : autenticar(correo, credencial)
+  A --> D : ResultadoAutenticacion(autenticado, correo)
+end
+D --> S : ResultadoAutenticacion(true, correo)
+
+S -> E : admite_votos
+E --> S : True (Abierta)
+
+note over S, E : Guarda participación en padrón\ny papeleta anónima en urna (ADR-002)
+
+S -> P : publicar("voto_emitido", datos)
+P -> AUD : actualizar("voto_emitido", datos)
+opt si enviar_correo es True
+  P -> NOT : actualizar("voto_emitido", datos)
+end
+
+S --> V : codigo_comprobante
+@enduml

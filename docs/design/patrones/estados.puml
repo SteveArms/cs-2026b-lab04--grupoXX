@@ -1,0 +1,74 @@
+@startuml estados
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam classBackgroundColor #EEF2F8
+skinparam classBorderColor #1A3A5C
+title Ciclo de vida de la elección: State
+
+class Eleccion <<Context>> {
+  - nombre: str
+  - opciones: list
+  - fin: datetime
+  - acta_firmada: bool
+  - _estado: EstadoEleccion
+  + estado: str
+  + admite_votos: bool
+  + cambiar_a(nuevo: EstadoEleccion): void
+  + abrir(): void
+  + cerrar(ahora): void
+  + escrutar(total_papeletas, total_participaciones): void
+  + firmar_acta(): void
+  + publicar(): void
+}
+
+abstract class EstadoEleccion <<State>> {
+  + nombre: str
+  + admite_votos: bool
+  + abrir(eleccion): void
+  + cerrar(eleccion, ahora): void
+  + escrutar(eleccion, total_papeletas, total_participaciones): void
+  + firmar_acta(eleccion): void
+  + publicar(eleccion): void
+  # _prohibida(accion): void
+}
+
+class Configurada <<ConcreteState>> {
+  + nombre: str = "CONFIGURADA"
+  + abrir(eleccion): void
+}
+
+class Abierta <<ConcreteState>> {
+  + nombre: str = "ABIERTA"
+  + admite_votos: bool = True
+  + cerrar(eleccion, ahora): void
+}
+
+class Cerrada <<ConcreteState>> {
+  + nombre: str = "CERRADA"
+  + escrutar(eleccion, total_papeletas, total_participaciones): void
+}
+
+class Escrutada <<ConcreteState>> {
+  + nombre: str = "ESCRUTADA"
+  + firmar_acta(eleccion): void
+  + publicar(eleccion): void
+}
+
+class Publicada <<ConcreteState>> {
+  + nombre: str = "PUBLICADA"
+}
+
+Eleccion o--> EstadoEleccion : estado actual >
+EstadoEleccion <|-- Configurada
+EstadoEleccion <|-- Abierta
+EstadoEleccion <|-- Cerrada
+EstadoEleccion <|-- Escrutada
+EstadoEleccion <|-- Publicada
+
+note right of EstadoEleccion
+  Por defecto, toda transición lanza ValueError.
+  Cada estado redefine SOLO las transiciones permitidas
+  en la máquina de estados del Lab 05.
+end note
+@enduml
