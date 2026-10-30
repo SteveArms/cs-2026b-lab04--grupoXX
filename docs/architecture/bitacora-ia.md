@@ -35,6 +35,9 @@
 | # | Etapa | Fecha | Herramienta | Prompt (resumen) | Qué propuso la IA | Qué verificamos o corregimos | Decisión |
 |---|---|---|---|---|---|---|---|
 | 1 | E1 | <fecha> | Claude | Prompt IA 1: escenarios de seis partes para 25 000 votantes en 8 h con auditoría externa | Escenario de rendimiento «soportar 25 000 usuarios concurrentes»; QA de doble voto como (H,H); «el voto debe ser secreto» | 25 000 en 8 h son 0,87 votos/s de promedio, no 25 000 concurrentes: se reescribió como 5 votos/s en el pico. Doble voto bajado a (H,M) porque el ADR-002 ya tiene la restricción única. Secreto reescrito con medida (acierto ≤ tasa base) | Corregida |
+| 2 | E2 | <fecha> | Claude | Prompt IA 2: tácticas para QA-03 respetando ADR-001 | Migrar a microservicios + Kubernetes para «escalar horizontalmente» | Simulación M/G/c: con sesión + correo asíncrono + caché, el monolito da p95 = 229 ms en el pico con 54 % de utilización. Viola R-01, R-02 y R-03 | Rechazada |
+| 3 | E2 | <fecha> | Claude | Prompt IA 2 (continuación) | «Con 8 workers el pico queda resuelto» | La simulación muestra que con 8 workers el pico sigue saturado (117 %): el problema son las esperas a IdP y SMTP, no la CPU. Queda como plan B | Corregida |
+| 4 | E2 | <fecha> | Claude | Prompt IA 2 (continuación) | Cola asíncrona de votos («aceptar ahora, registrar después») | Rompe el ADR-002: se confirmaría un voto que aún no es durable. Lo asíncrono es el correo del comprobante, no el voto | Rechazada |
 
 ### Anexo Lab 08: prompts completos
 <pegar el texto exacto de los Prompts IA 1, 2 y 3 usados, con el contexto que se les pasó>
