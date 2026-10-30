@@ -34,7 +34,7 @@ VARIANTES = {
     "escalar_8_workers": dict(idp_en_cada_solicitud=True, correo_sincrono=True, cache_papeleta=False, workers=8),
     "sesion": dict(idp_en_cada_solicitud=False, correo_sincrono=True, cache_papeleta=False, workers=4),
     "sesion_correo_async": dict(idp_en_cada_solicitud=False, correo_sincrono=False, cache_papeleta=False, workers=4),
-    "tres_tacticas": dict(idp_en_cada_solicitud=False, correo_sincrono=False, cache_papeleta=True, workers=4),
+    "tres_tacticas": dict(idp_en_cada_solicitud=False, correo_sincrono=True, cache_papeleta=True, workers=4),
 }
 
 # Niveles de carga en VOTOS por segundo (25 000 votantes en 8 h)
