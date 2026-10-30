@@ -29,6 +29,7 @@ class Papeleta:
     # ADR-002: la papeleta NO referencia al votante.
     eleccion_id: UUID
     opcion_id: UUID
+    votante_id: str = ""      # "para depurar duplicados"
 
 
 class ServicioVotacion:
