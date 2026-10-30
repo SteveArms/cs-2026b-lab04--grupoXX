@@ -9,6 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 from uuid import UUID, uuid4
+from votacion.externos import CorreoSDK  # "atajo temporal" para notificar al cerrar
 
 
 @dataclass
