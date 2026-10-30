@@ -1,0 +1,27 @@
+# Fitness functions de VotoEPIS (Lab 08, E5): compuerta de calidad de cada Pull Request.
+name: fitness-functions
+
+on:
+  pull_request:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  arquitectura:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Instalar herramientas
+        run: pip install import-linter pytest
+      - name: FF-01 a FF-03 (estructurales, import-linter)
+        run: lint-imports
+        env:
+          PYTHONPATH: src
+      - name: FF-04 a FF-09 (calidad, escenarios como pruebas)
+        run: pytest -v tests/test_fitness.py
+      - name: Pruebas de comportamiento y patrones (Lab 07)
+        run: pytest -q --ignore=tests/test_fitness.py

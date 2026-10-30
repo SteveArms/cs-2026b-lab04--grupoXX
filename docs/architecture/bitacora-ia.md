@@ -42,6 +42,7 @@
 | 6 | E4 | <fecha> | Claude | Tácticas de contingencia para QA-04 (IdP caído) | OTP por correo institucional como plan de contingencia | Falla de modo común: el correo institucional probablemente es del mismo proveedor que el IdP (🔶 verificar con la OTI). Se reemplazó por la mesa del comité con código de un solo uso + extensión del cierre | Corregida |
 | 7 | E4 | <fecha> | Claude | Tácticas de integridad del registro para QA-02 | Blockchain para el registro de auditoría y firma digital de cada evento | El prototipo muestra que cadena de hashes + anclaje externo detecta el 100 % de alteraciones ya ancladas. La firma con una clave en el mismo VPS no protege contra el administrador | Rechazada |
 | 8 | E4 | <fecha> | Claude | Frecuencia del anclaje | «Basta con publicar el hash final en el acta» | Con anclaje solo al cierre se detecta el 0 % de las reescrituras completas (sensibilidad medida: 15 min → 92 %). Se fijó el anclaje cada 15 min | Corregida |
+| 9 | E5 | <fecha> | Claude | Contratos de import-linter para ADR-001 y ADR-005 | FF-02 como «votacion.servicio no puede importar votacion.externos» | lint-imports la marcó BROKEN en el código actual: ServicioVotacion es la raíz de composición del prototipo (crea los SDK por defecto), directa y transitivamente vía autenticacion. Se restringió FF-02 al dominio, los patrones, padron y compartido, y se anotó como deuda mover la composición a un módulo de arranque | Corregida |
 
 ### Anexo Lab 08: prompts completos
 <pegar el texto exacto de los Prompts IA 1, 2 y 3 usados, con el contexto que se les pasó>

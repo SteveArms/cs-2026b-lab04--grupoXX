@@ -1,0 +1,39 @@
+; Fitness functions ESTRUCTURALES de VotoEPIS (Lab 08, E5).
+; Ejecutar desde la raíz:  PYTHONPATH=src lint-imports
+[importlinter]
+root_packages =
+    votacion
+    padron
+    compartido
+
+[importlinter:contract:capas]
+name = FF-01 Capas del monolito modular sin ciclos: votacion -> padron -> compartido (ADR-001, ADR-004)
+type = layers
+layers =
+    votacion
+    padron
+    compartido
+
+[importlinter:contract:sdk-externos]
+name = FF-02 El dominio y los patrones no conocen los SDK externos; solo la composicion (ADR-005, Lab 07)
+type = forbidden
+source_modules =
+    votacion.estados
+    votacion.eventos
+    votacion.dominio
+    padron
+    compartido
+forbidden_modules =
+    votacion.externos
+
+[importlinter:contract:version-antes]
+name = FF-03 El codigo refactorizado no depende de la version ingenua 'antes' (Lab 07)
+type = forbidden
+source_modules =
+    votacion.servicio
+    votacion.autenticacion
+    votacion.estados
+    votacion.eventos
+    votacion.dominio
+forbidden_modules =
+    votacion.antes
