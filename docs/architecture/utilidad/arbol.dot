@@ -1,0 +1,50 @@
+// Árbol de utilidad de VotoEPIS tras el escenario de crecimiento del Lab 08
+// (25 000 votantes en 8 horas, con auditoría externa). 
+digraph arbol_utilidad {
+  rankdir=LR;
+  graph [fontname="Helvetica", fontsize=11, nodesep=0.25, ranksep=0.55,
+         label="Árbol de utilidad — VotoEPIS (Lab 08). Hojas: (importancia, dificultad)", labelloc=t];
+  node  [fontname="Helvetica", fontsize=10, style="rounded,filled", shape=box];
+  edge  [color="#7f8c8d", arrowhead=none];
+
+  raiz [label="Utilidad\nVotoEPIS\n25 000 votantes / 8 h", fillcolor="#1f3a5f", fontcolor=white];
+
+  // Atributos
+  node [fillcolor="#c0392b", fontcolor=white];
+  rend [label="Rendimiento"];
+  disp [label="Disponibilidad"];
+  seg  [label="Seguridad\n(integridad, secreto,\nauditabilidad)"];
+  mod  [label="Modificabilidad"];
+
+  // Refinamientos
+  node [fillcolor="#fadbd8", fontcolor="#641e16", color="#c0392b"];
+  r_pico  [label="Pico de apertura"];
+  d_idp   [label="Falla del proveedor\nde identidad"];
+  d_vps   [label="Reinicio del servidor"];
+  s_int   [label="Integridad del voto"];
+  s_sec   [label="Secreto del voto"];
+  s_aud   [label="Auditoría externa"];
+  m_auth  [label="Nuevo medio de\nautenticación"];
+  m_elec  [label="Nueva elección\n(otra facultad)"];
+
+  // Hojas (escenarios). Verde oscuro = guían las iteraciones de ADD
+  node [shape=box, style="rounded,filled", fillcolor="#eafaf1", fontcolor="#145a32", color="#27ae60"];
+  qa03 [label="(H,H) QA-03: 4 500 votantes en 15 min (5 votos/s) → p95 de emitir voto ≤ 2 s", penwidth=2.2];
+  qa04 [label="(H,H) QA-04: IdP caído 30 min → con sesión p95 ≤ 2 s; ≤ 5 % de afectados sin votar", penwidth=2.2];
+  qa05 [label="(H,M) QA-05: reinicio del VPS → servicio en ≤ 5 min; 0 votos confirmados perdidos"];
+  qa01 [label="(H,M) QA-01: 1 000 pares de envíos concurrentes → 0 votos duplicados; participaciones = papeletas"];
+  qa06 [label="(H,M) QA-06: quien conoce el orden de votación → acierto ≤ tasa base (46 %)"];
+  qa02 [label="(H,M) QA-02: auditor externo → conteo con diferencia 0; detecta 100 % de alteraciones; ≤ 10 min", penwidth=2.2];
+  qa07 [label="(M,L) QA-07: nuevo medio (p. ej., DNIe) → ≤ 2 días-persona; 0 cambios en ServicioVotacion", fillcolor="#f4f6f6", fontcolor="#424949", color="#95a5a6"];
+  qa08 [label="(M,M) QA-08: elección de otra facultad → configurada en ≤ 30 min sin desplegar código", fillcolor="#f4f6f6", fontcolor="#424949", color="#95a5a6"];
+
+  raiz -> {rend disp seg mod};
+  rend -> r_pico -> qa03;
+  disp -> d_idp -> qa04;
+  disp -> d_vps -> qa05;
+  seg  -> s_int -> qa01;
+  seg  -> s_sec -> qa06;
+  seg  -> s_aud -> qa02;
+  mod  -> m_auth -> qa07;
+  mod  -> m_elec -> qa08;
+}

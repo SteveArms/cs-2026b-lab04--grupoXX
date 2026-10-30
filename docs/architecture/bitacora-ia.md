@@ -1,27 +1,12 @@
-# Bitácora de uso de IA — Lab 06 VotoEPIS (modelo C4)
+# Bitácora de uso de IA — VotoEPIS
 
 | # | Fecha | Herramienta | Prompt (resumen) | Qué propuso la IA | Qué verificamos o corregimos | Decisión |
-|---|-------|-------------|------------------|-------------------|------------------------------|----------|
-| 1 | 16/10/2026 | Claude | Prompt IA 1: borrador de `workspace.dsl` a partir del inventario, los ADR-001/002/003 y `despliegue.py` | DSL con 3 personas, el sistema, 2 externos, 3 contenedores, 6 componentes y las vistas de contexto, contenedores, componentes y dinámica | Se verificó que solo use tecnologías de los ADR y que los componentes coincidan con `paquetes.puml`. `structurizr validate` sin errores en las cuatro etapas | Aceptada con ajustes |
-| 2 | 16/10/2026 | Claude | Misma conversación: decidir los contenedores (E2) | 3 contenedores: aplicación web, API Django y PostgreSQL | Se justifica la web separada (corre en el navegador del usuario; la guía pide 3 o más contenedores). Se rechazó Nginx y Docker Compose como contenedores (infraestructura, E5) y Redis/Celery (no figuran en los ADR) | Aceptada con ajustes |
-| 3 | 16/10/2026 | Claude y Structurizr CLI | Exportar el DSL a C4-PlantUML y Mermaid | Etiquetar los sistemas externos con `"Externo"` y un estilo gris | `validate` sin errores. En Mermaid los externos salen grises; en C4-PlantUML la etiqueta se pierde (`$tags=""`) y salen del mismo azul que VotoEPIS | Aceptada con limitación documentada |
-| 4 | 16/10/2026 | Claude | Comparar los componentes C4 con `docs/design/paquetes.puml` y la arquitectura del Lab 04 | 6 componentes con las dependencias de `paquetes.puml`; señaló que `arquitectura.mmd` y el README conservan `Votacion -->\|registra eventos\| Auditoria` | Esa flecha forma el ciclo `votacion → auditoria → escrutinio → votacion`, que el ADR-004 dice haber eliminado con el puerto `RegistroAuditoria` en `compartido`. Se corrigió el Mermaid del Lab 04 (artefacto equivocado) | Corregida |
-| 5 | 16/10/2026 | Claude y Structurizr CLI | Vista dinámica "Emitir voto" a partir de `secuencia-emitir-voto.puml` | 6 pasos: web → Votación → Padrón → BD, Votación → BD, Votación → puerto compartido y Votación → correo | Cada paso corresponde a una relación ya declarada en el modelo (si no, `validate` falla). Se omitieron a propósito las ramas de error, los retornos y la transacción, y se documentó en `comparacion.md` | Aceptada |
-
-## Detalle de las correcciones
-
-### Entrada 4 — Contradicción entre `arquitectura.mmd` y el ADR-004 (E3)
-- **Qué propuso la IA:** modelar los 6 componentes de la API con las mismas dependencias que `paquetes.puml`, y señaló la flecha `Votacion -->|registra eventos| Auditoria` que seguía en `arquitectura.mmd` y en el README.
-- **Qué verificamos:** esa flecha crea la dependencia `votacion → auditoria`; junto con `auditoria → escrutinio → votacion` forma un ciclo, que el ADR-004 dice haber eliminado. El modelo C4 no la tiene: Votación usa el puerto y Auditoría lo implementa.
-- **Corrección:** se cambió `Votacion -->|registra eventos| Auditoria` por `Auditoria -->|lee acta y hash| Escrutinio` en `arquitectura.mmd` y en el README, y se regeneró `arquitectura.png`.
-
-### Entrada 3 — Etiqueta `Externo` en la exportación PlantUML (E2)
-- **Qué verificamos:** el exportador de C4-PlantUML descarta la etiqueta (`$tags=""`), por lo que los externos no se distinguen por color en el PNG.
-- **Corrección:** no se cambió el modelo; la etiqueta se mantiene en el DSL. Se documenta la limitación y se indica que la versión Mermaid sí muestra los externos en gris.
-
-### Entrada 2 — Contenedor web separado del monolito (E2)
-- **Qué verificamos:** en el Lab 04 la capa de presentación estaba dentro del monolito. Se separó como contenedor porque es código que corre en el navegador del usuario.
-- **Corrección:** se rechazaron Nginx y Docker Compose como contenedores y no se agregó Redis ni Celery, que no figuran en los ADR.
+|---|---|---|---|---|---|---|
+| 1 | 29/09 | Gemini | Prompt RCRTF: Propuesta de 3 estilos para sistema de votación digital con ~300 concurrentes | Monolito en capas, Monolito modular y Microservicios con Kubernetes | Recomendó microservicios. Se rechazó por violar R-01 (1 mes), R-02 (2 devs) y R-03 (1 VPS). Sobredimensionado para 300 usuarios. | Rechazada |
+| 2 | 29/09 | Gemini | Abogado del diablo sobre Monolito Modular en un solo VPS | Alertó sobre cuello de botella en BD y acoplamiento accidental entre módulos | Se verificó y aceptó: se añadieron transacciones ACID independientes, linters de imports (`import-linter`) y esquemas lógicos separados. | Aceptada |
+| 3 | 30/09 | Gemini | Generación de código Mermaid para arquitectura monolítica modular | Código con sintaxis de subgraphs y capas | Se detectaron enlaces redundantes entre actores y módulos internos; se corrigió para que todo pase primero por la capa de Presentación Web. | Corregida |
+| 4 | 01/10 | Gemini | Generación de script en Python con la librería `diagrams` | Script usando clases no estándar (`diagrams.generic.blank`) para representar la urna | El módulo arrojó error de importación. Se verificó en la documentación oficial de `diagrams.mingrammer.com` y se usaron nodos nativos. | Corregida |
+| 5 | 02/10 | Gemini | Alternativa de votación anónima basada en Smart Contracts / Blockchain privada | Implementar un ledger distribuido para registrar cada voto | Se descartó por alta complejidad de despliegue, curva de aprendizaje y nula necesidad técnica para el alcance de un MVP en 1 mes. | Rechazada |
 
 ## Anexo: Prompts completos
 
@@ -39,3 +24,17 @@
 
 ### Prompt 5 (Mecanismo de Integridad y Secreto)
 > ¿Es conveniente utilizar una blockchain ligera o tablas desacopladas con hash SHA-256 para garantizar el secreto del voto y auditoría en un sistema electoral universitario de 1 mes de plazo?
+
+
+---
+
+## Lab 08 — Diseño de la arquitectura con ADD (VotoEPIS: 25 000 votantes, auditoría externa)
+
+> **Borrador:** las filas resumen lo que propuso el asistente (Claude) al preparar este material y cómo se verificó con las simulaciones de `fitness/`. Reemplacen `<fecha>` y adapten la herramienta y los prompts a sus interacciones reales. La guía pide **5 o más** interacciones y **al menos un falso positivo refutado** (fila 5).
+
+| # | Etapa | Fecha | Herramienta | Prompt (resumen) | Qué propuso la IA | Qué verificamos o corregimos | Decisión |
+|---|---|---|---|---|---|---|---|
+| 1 | E1 | <fecha> | Claude | Prompt IA 1: escenarios de seis partes para 25 000 votantes en 8 h con auditoría externa | Escenario de rendimiento «soportar 25 000 usuarios concurrentes»; QA de doble voto como (H,H); «el voto debe ser secreto» | 25 000 en 8 h son 0,87 votos/s de promedio, no 25 000 concurrentes: se reescribió como 5 votos/s en el pico. Doble voto bajado a (H,M) porque el ADR-002 ya tiene la restricción única. Secreto reescrito con medida (acierto ≤ tasa base) | Corregida |
+
+### Anexo Lab 08: prompts completos
+<pegar el texto exacto de los Prompts IA 1, 2 y 3 usados, con el contexto que se les pasó>
