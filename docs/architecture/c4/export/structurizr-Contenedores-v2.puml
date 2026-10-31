@@ -1,0 +1,39 @@
+@startuml
+skinparam dpi 180
+title <size:24>Container View: VotoEPIS 2.0</size>\n<size:24>Nivel 2: Contenedores tras refactor ADD (Lab 08).</size>
+set separator none
+left to right direction
+
+!include <C4/C4>
+!include <C4/C4_Context>
+!include <C4/C4_Container>
+
+Person(estudiante, "Estudiante votante", "Votante habilitado de la universidad [QA-01, QA-03, QA-06].")
+Person(comite, "Comité electoral", "Administra padrón, contingencias y firma el acta [QA-04, QA-08].")
+Person(auditor, "Auditor externo", "Verifica conteo y anclajes criptográficos independientes [QA-02].")
+
+System_Ext(idp, "Proveedor de identidad institucional", "Autentica credenciales universitarias vía OIDC [QA-04].")
+System_Ext(correo, "Servicio de correo", "Envío de comprobantes de voto en segundo plano [QA-03].")
+System_Ext(portal_anclaje, "Portal externo de anclaje", "Publicación periódica de hashes para auditoría pública [QA-02].")
+
+System_Boundary(c1, "VotoEPIS") {
+    Container(web, "Aplicación web de votación", "HTML5 / React / PWA", "PWA responsive con sesión local de 15 min [QA-03, QA-04].")
+    Container(api, "API VotoEPIS", "Python / Django", "Monolito modular con Bulkhead y Circuit Breaker [QA-01, QA-03, QA-04].")
+    Container(cache, "Caché de consultas", "Redis / Memoria", "Almacena opciones de elección y sesiones activas [QA-03].")
+    Container(outbox, "Worker / Outbox", "Celery / Python", "Despacho asíncrono de comprobantes por correo [QA-03].")
+    ContainerDb(db, "Base de datos", "PostgreSQL 16", "PostgreSQL con esquemas aislados y candado de escritura [QA-01, QA-02].")
+}
+
+Rel(estudiante, web, "Usa navegador o celular [QA-03]", "HTTPS")
+Rel(comite, web, "Monitorea y atiende contingencias [QA-04]", "HTTPS")
+Rel(auditor, web, "Descarga exportación anónima [QA-02]", "HTTPS")
+Rel(web, api, "Llamadas REST con token de sesión [QA-03]", "HTTPS/JSON")
+Rel(api, cache, "Lee catálogo y valida sesión [QA-03]", "TCP/Memory")
+Rel(api, db, "Transacción atómica de voto [QA-01]", "SQL/TCP")
+Rel(api, outbox, "Encola comprobantes en outbox [QA-03]", "SQL/TCP")
+Rel(outbox, correo, "Despacha correos sin bloquear al votante [QA-03]", "SMTP")
+Rel(api, idp, "Autenticación protegida con Circuit Breaker [QA-04]", "HTTPS/OIDC")
+Rel(api, portal_anclaje, "Envía hash acumulado cada 15 min [QA-02]", "HTTPS/JSON")
+
+SHOW_LEGEND(true)
+@enduml
