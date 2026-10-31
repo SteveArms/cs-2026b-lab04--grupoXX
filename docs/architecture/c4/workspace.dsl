@@ -1,78 +1,60 @@
-workspace "VotoEPIS" "Modelo C4 de la plataforma de elección digital de delegados estudiantiles de la EPIS-UNSA" {
+workspace "VotoEPIS" "Modelo C4 de VotoEPIS escalado tras ADD (Lab 08)" {
 
     !identifiers hierarchical
 
     model {
-        // ===== [E1] Personas, sistema y sistemas externos =====
-        estudiante = person "Estudiante votante" "Estudiante habilitado de la EPIS que emite un voto secreto."
-        comite = person "Comité electoral" "Administra el padrón y las elecciones, realiza el escrutinio y firma el acta."
-        auditor = person "Auditor" "Verifica de forma independiente el conteo de la elección."
+        estudiante = person "Estudiante votante" "Votante habilitado de la universidad [QA-01, QA-03, QA-06]."
+        comite = person "Comité electoral" "Administra padrón, contingencias y firma el acta [QA-04, QA-08]."
+        auditor = person "Auditor externo" "Verifica conteo y anclajes criptográficos independientes [QA-02]."
 
-        votoepis = softwareSystem "VotoEPIS" "Permite votar de forma secreta y verificable en las elecciones de delegados." {
-            // ===== [E2] Contenedores =====
-            web = container "Aplicación web de votación" "Interfaz para votantes, comité y auditor desde celular o PC." "HTML / CSS / JavaScript (web responsive)" "Web Browser"
-            api = container "API VotoEPIS" "Monolito modular que implementa los casos de uso mediante una API REST." "Python / Django" {
-                // ===== [E3] Componentes (= paquetes de docs/design/paquetes.puml) =====
-                autenticacion = component "Módulo Autenticación" "Inicia sesión con el correo institucional y verifica que el estudiante esté en el padrón." "Django app"
-                padron = component "Módulo Padrón" "Administra el padrón electoral y el registro de participación." "Django app"
-                votacion = component "Módulo Votación" "Registra la papeleta anónima y controla el voto único por estudiante." "Django app"
-                escrutinio = component "Módulo Escrutinio" "Cuenta los votos y genera los resultados y el acta." "Django app"
-                auditoria = component "Módulo Auditoría" "Registra eventos y permite la verificación independiente del conteo." "Django app"
-                compartido = component "Puertos compartidos" "Define interfaces comunes, como el puerto RegistroAuditoria." "Python"
+        votoepis = softwareSystem "VotoEPIS" "Sistema de votación electrónica segura y auditable [QA-01..QA-08]." {
+            web = container "Aplicación web de votación" "PWA responsive con sesión local de 15 min [QA-03, QA-04]." "HTML5 / React / PWA" "Web Browser"
+            api = container "API VotoEPIS" "Monolito modular en Django con Bulkhead y Circuit Breaker [QA-01, QA-03, QA-04]." "Python / Django" {
+                autenticacion = component "Módulo Autenticación" "Autenticación OIDC con Circuit Breaker y fallback OTP [QA-04]." "Django app"
+                padron = component "Módulo Padrón" "Valida habilitación y unicidad de participación [QA-01, QA-03]." "Django app"
+                votacion = component "Módulo Votación" "Urna anónima y lógica de emisión desacoplada [QA-01, QA-06]." "Django app"
+                escrutinio = component "Módulo Escrutinio" "Cómputo automatizado y exportación mezclada [QA-02, QA-06]." "Django app"
+                auditoria = component "Módulo Auditoría" "Cadena de hashes SHA-256 y anclaje cada 15 min [QA-02]." "Django app"
+                compartido = component "Puertos compartidos" "Interfaces públicas y RegistroAuditoria [ADR-004]." "Python"
             }
-            db = container "Base de datos" "Padrón, participación, papeletas anónimas, resultados y auditoría (un esquema por módulo)." "PostgreSQL 16" "Database"
+            cache = container "Caché de consultas" "Almacena opciones de elección y sesiones activas [QA-03]." "Redis / Memoria"
+            outbox = container "Worker / Outbox" "Despacho asíncrono de comprobantes por correo [QA-03]." "Celery / Python"
+            db = container "Base de datos" "PostgreSQL con esquemas aislados y candado de escritura [QA-01, QA-02]." "PostgreSQL 16" "Database"
         }
 
-        idp = softwareSystem "Proveedor de identidad institucional" "Autentica a los estudiantes con su correo institucional." "Externo"
-        correo = softwareSystem "Servicio de correo" "Entrega los comprobantes de participación." "Externo"
+        idp = softwareSystem "Proveedor de identidad institucional" "Autentica credenciales universitarias vía OIDC [QA-04]." "Externo"
+        correo = softwareSystem "Servicio de correo" "Envío de comprobantes de voto en segundo plano [QA-03]." "Externo"
+        portal_anclaje = softwareSystem "Portal externo de anclaje" "Publicación periódica de hashes para auditoría pública [QA-02]." "Externo"
 
-        // --- [E1] Relaciones de nivel 1 (verbo de intención) ---
-        estudiante -> votoepis "Emite su voto secreto"
-        comite -> votoepis "Administra elecciones, realiza el escrutinio y firma el acta"
-        auditor -> votoepis "Verifica el conteo de forma independiente"
-        votoepis -> idp "Autentica a los estudiantes" "HTTPS"
-        votoepis -> correo "Envía comprobantes de participación" "SMTP"
+        // Relaciones Nivel 1
+        estudiante -> votoepis "Emite voto secreto [QA-01, QA-03]"
+        comite -> votoepis "Gestiona elecciones y contingencias [QA-04, QA-08]"
+        auditor -> votoepis "Audita cadena y recuento independiente [QA-02]"
+        votoepis -> idp "Valida credenciales [QA-04]" "HTTPS/OIDC"
+        votoepis -> correo "Envía comprobantes [QA-03]" "SMTP"
+        votoepis -> portal_anclaje "Publica anclas cada 15 min [QA-02]" "HTTPS/REST"
 
-        // --- [E2] Relaciones de nivel 2 (verbo + protocolo) ---
-        estudiante -> votoepis.web "Emite su voto" "HTTPS"
-        comite -> votoepis.web "Administra elecciones y firma el acta" "HTTPS"
-        auditor -> votoepis.web "Descarga papeletas anónimas y acta" "HTTPS"
-        votoepis.web -> votoepis.api "Envía solicitudes" "HTTPS/JSON (REST)"
-        votoepis.api -> votoepis.db "Lee y escribe" "SQL/TCP"
-        votoepis.api -> idp "Autentica a los estudiantes" "OpenID Connect / HTTPS"
-        votoepis.api -> correo "Envía comprobantes" "SMTP"
+        // Relaciones Nivel 2
+        estudiante -> votoepis.web "Usa navegador o celular [QA-03]" "HTTPS"
+        comite -> votoepis.web "Monitorea y atiende contingencias [QA-04]" "HTTPS"
+        auditor -> votoepis.web "Descarga exportación anónima [QA-02]" "HTTPS"
+        votoepis.web -> votoepis.api "Llamadas REST con token de sesión [QA-03]" "HTTPS/JSON"
+        votoepis.api -> votoepis.cache "Lee catálogo y valida sesión [QA-03]" "TCP/Memory"
+        votoepis.api -> votoepis.db "Transacción atómica de voto [QA-01]" "SQL/TCP"
+        votoepis.api -> votoepis.outbox "Encola comprobantes en outbox [QA-03]" "SQL/TCP"
+        votoepis.outbox -> correo "Despacha correos sin bloquear al votante [QA-03]" "SMTP"
+        votoepis.api -> idp "Autenticación protegida con Circuit Breaker [QA-04]" "HTTPS/OIDC"
+        votoepis.api -> portal_anclaje "Envía hash acumulado cada 15 min [QA-02]" "HTTPS/JSON"
 
-        // --- [E3] Relaciones de nivel 3 (idénticas a las dependencias de paquetes.puml) ---
-        votoepis.web -> votoepis.api.autenticacion "Inicia sesión" "HTTPS/JSON"
-        votoepis.web -> votoepis.api.padron "Carga y consulta el padrón" "HTTPS/JSON"
-        votoepis.web -> votoepis.api.votacion "Emite el voto" "HTTPS/JSON"
-        votoepis.web -> votoepis.api.escrutinio "Solicita el escrutinio y los resultados" "HTTPS/JSON"
-        votoepis.web -> votoepis.api.auditoria "Descarga el acta y las papeletas anónimas" "HTTPS/JSON"
-
-        votoepis.api.autenticacion -> votoepis.api.padron "Verifica que el correo esté habilitado"
-        votoepis.api.votacion -> votoepis.api.padron "Verifica y registra la participación"
-        votoepis.api.votacion -> votoepis.api.compartido "Registra eventos (puerto RegistroAuditoria)"
-        votoepis.api.escrutinio -> votoepis.api.votacion "Lee las papeletas"
-        votoepis.api.escrutinio -> votoepis.api.compartido "Registra eventos (puerto RegistroAuditoria)"
-        votoepis.api.auditoria -> votoepis.api.escrutinio "Lee resultados y hash del acta"
-        votoepis.api.auditoria -> votoepis.api.compartido "Implementa el puerto RegistroAuditoria"
-
-        votoepis.api.autenticacion -> idp "Autentica al estudiante" "OpenID Connect / HTTPS"
-        votoepis.api.votacion -> correo "Envía el comprobante (opcional)" "SMTP"
-
-        votoepis.api.padron -> votoepis.db "Lee y escribe (esquema padron)" "SQL"
-        votoepis.api.votacion -> votoepis.db "Guarda papeletas anónimas (esquema urna)" "SQL"
-        votoepis.api.escrutinio -> votoepis.db "Guarda resultados y acta" "SQL"
-        votoepis.api.auditoria -> votoepis.db "Lee y escribe (esquema auditoria)" "SQL"
-
-        // ===== [E5] Entorno de despliegue (coherente con R-03 y despliegue.py) =====
         produccion = deploymentEnvironment "Producción" {
-            deploymentNode "Celular o PC del usuario" "Dispositivo de votantes, comité o auditor" "Android / iOS / Desktop (Navegador web)" {
+            deploymentNode "Dispositivo del votante" "" "Android / iOS / Navegador web" {
                 containerInstance votoepis.web
             }
-            deploymentNode "VPS en la nube" "Servidor único de bajo costo (R-03)" "Ubuntu 24.04 LTS, 2 vCPU, 4 GB RAM" {
-                deploymentNode "Docker Compose + Nginx" "Orquestación local y reverse proxy HTTPS" "Docker 27 / Nginx 1.24" {
+            deploymentNode "VPS único en la nube" "Ubuntu 24.04 LTS, 4 vCPU, 8 GB RAM (R-03)" "Servidor VPS" {
+                deploymentNode "Docker Compose" "" "Docker Engine" {
                     containerInstance votoepis.api
+                    containerInstance votoepis.cache
+                    containerInstance votoepis.outbox
                     containerInstance votoepis.db
                 }
             }
@@ -80,37 +62,12 @@ workspace "VotoEPIS" "Modelo C4 de la plataforma de elección digital de delegad
     }
 
     views {
-        // ===== [E1] Nivel 1 =====
-        systemContext votoepis "Contexto" "Nivel 1: VotoEPIS y su entorno." {
+        systemContext votoepis "Contexto" "Nivel 1: VotoEPIS 2.0 y su entorno." {
             include *
             autolayout lr
         }
 
-        // ===== [E2] Nivel 2 =====
-        container votoepis "Contenedores" "Nivel 2: contenedores de VotoEPIS." {
-            include *
-            autolayout lr
-        }
-
-        // ===== [E3] Nivel 3 =====
-        component votoepis.api "Componentes" "Nivel 3: módulos de la API." {
-            include *
-            autolayout lr
-        }
-
-        // ===== [E4] Vista dinámica: emitir un voto secreto =====
-        dynamic votoepis.api "EmitirVoto" "Dinámico: un estudiante emite su voto secreto." {
-            votoepis.web -> votoepis.api.votacion "Envía el voto: POST /elecciones/{id}/voto"
-            votoepis.api.votacion -> votoepis.api.padron "Verifica y registra la participación"
-            votoepis.api.padron -> votoepis.db "Guarda la participación"
-            votoepis.api.votacion -> votoepis.db "Guarda la papeleta anónima"
-            votoepis.api.votacion -> votoepis.api.compartido "Registra el evento VOTO_EMITIDO"
-            votoepis.api.votacion -> correo "Envía el comprobante (opcional)"
-            autolayout lr
-        }
-
-        // ===== [E5] Vista de despliegue =====
-        deployment votoepis produccion "Despliegue" "Despliegue en producción (MVP en un único VPS)." {
+        container votoepis "Contenedores" "Nivel 2: Contenedores tras refactor ADD (Lab 08)." {
             include *
             autolayout lr
         }
@@ -137,10 +94,6 @@ workspace "VotoEPIS" "Modelo C4 de la plataforma de elección digital de delegad
             }
             element "Web Browser" {
                 shape WebBrowser
-            }
-            element "Component" {
-                background #85BBF0
-                color #000000
             }
         }
     }
